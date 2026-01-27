@@ -28,8 +28,26 @@ export const DataService = [
     "jobTime": "Full Time",
     "title": "Senior Programmer Analyst",
     "description": "Position based in Glen Allen, VA. Design, develop, test, and implement business applications using C#, C#.NET, Visual Basic, VB Script, ASP, ASP.NET, FACETS & QNXT Trizetto tool, CSS, HTML, XML, JIRA, PL/SQL Server and MS-Visual Safe in Unix and Windows environment. Develop software solutions by studying systems flow, data usage , processes and information. Conferring with users and Subject Matter Experts, investigating problems and providing solutions. Create technical design documents, system use case documents, process flow diagrams and user defined functions. Engage in requirement gathering and system analysis and involve in code review. Write and debug complex stored procedures, triggers, and inner joins. Develop test scripts and perform User Acceptance testing. Utilize SQL Server and DataStage to design and develop ETL Jobs in Software Development Life Cycle (SDLC). Utilize Oracle, PL/SQL, and Sybase to design and maintain databases. Require Bachelorâ€™s Degree or Foreign Equivalent in Computer Science or Computer Information Systems or Related with five years of experience in the job offered or related field. Job requires travel and/or relocation to various unanticipated client sites in the U.S. Mail resume to Global Sumi Technologies Inc., Attn: HR Department, 11549 Nuckols Road, Suite B, Glen Allen, VA - 23059."
+  },
+  {
+    "id": 6,
+    "jobTime": "Full Time",
+    "title": "Senior Software Engineer",
+    "description": "Position based in Glen Allen, VA. Design, develop, test and implement applications using JIRA, Confluence, Unix Shell Scripting, Spark, Python, Hive, Waterfall and Agile in Windows environment. Engage in requirement gathering and involve in PI planning. Build automation tools to enable faster data migration. Involve in the architectural design of data warehousing and ensure quality checks. Develop reusable frameworks for data migration and facilitate post migration validations. Perform end-to-end testing and coordinate user acceptance testing. Conduct analysis of existing AB Initio code and integrate new requirements. Design and review codes and engage in migration. Utilize Oracle, Teradata and DB2 to design and maintain databases. Require Bachelor’s Degree in Computer Science or Engineering or Technology or Related Field with five years of experience in the job offered or related field. Job requires travel and/or relocation to various unanticipated client sites in the United States. The occupation requires travel only nationally (that is within the United States) every 2-3 months. Mail resume to Global Sumi Technologies Inc, Attn: HR Department,11549 Nuckols Road, Suite B, Glen Allen, VA – 23059."
+  },
+  {
+    "id": 7,
+    "jobTime": "Full Time",
+    "title": "Senior Software Engineer",
+    "description": "Position based in Glen Allen, VA. Design, develop, test and implement applications using J2SE, HTML, Scala, Python, Talend Cloud, IICS, SSIS, Big Data Hive, Pig, HBase, Snowflake in Linux and Windows environment. Design and implement AWS Glue Jobs using Pyspark and build data pipelines using Glue workflows. Engage in CI/CD pipeline implementation and involve in Talend Migration. Develop Stored Procedures in Snowflake and write custom transformation scripts in pyspark. Manage data ingestion processes from SAP and legacy applications into Snowflake. Engage in troubleshooting and performance tuning of SQL queries. Implement data ingestion pipeline using Informatics IICS. Monitor ETL jobs and perform validation of Openshift pods. Utilize Oracle, Vertica and MongoDB to design and maintain databases. Require Master’s Degree in Computer Science or Computer Information Systems or Technology or Related Field with two years of experience in the job offered or related field. Job requires travel and/or relocation to various unanticipated client sites in the United States. The occupation requires travel within the United States every 2-3 months for about 10-15 days. Mail resume to Global Sumi Technologies Inc, Attn: HR Department,11549 Nuckols Road, Suite B, Glen Allen, VA – 23059."
+  },
+  {
+    "id": 8,
+    "jobTime": "Full Time",
+    "title": "Senior Software Engineer",
+    "description": "Position based in Glen Allen, VA. Design, develop, test and implement applications using Java, JavaScript, Spring MVC, Hibernate, HTML5, CSS3, Tomcat, Maven, GitHub, Junit in Unix, Linux and Windows environment. Develop and maintain Automation Frameworks and participate in Agile development. Implement AWS EC2 to deploy Docker containers with Microservices Architecture. Participate in DevOps activities such as CI/CD pipeline configuration with Jenkins and Dockers. Develop UI interface using Angular, JSP, CSS3 and Bootstrap. Design Selenium Test Scripts, write Cucumber Feature Files and perform Unit Testing. Utilize Oracle and MySQL to design and develop databases. Require Master’s Degree in Computer Science or Engineering or Technology or Related Field with two years of experience in the job offered or related field. Job requires travel and/or relocation to various unanticipated client sites in the United States. The occupation requires travel within the United States every 2-3 months for about 10-15 days. Mail resume to Global Sumi Technologies Inc, Attn: HR Department,11549 Nuckols Road, Suite B, Glen Allen, VA – 23059."
   }
 
-  
+
 
 ]
