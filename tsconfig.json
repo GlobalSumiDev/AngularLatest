@@ -27,8 +27,14 @@
     "lib": [
       "ES2022",
       "dom"
-    ]
+    ],
+    "jsx": "react",                           
+    "allowSyntheticDefaultImports": true
   },
+  "include": [                                 
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
