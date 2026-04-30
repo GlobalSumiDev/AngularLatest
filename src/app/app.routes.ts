@@ -36,6 +36,7 @@ import { MediawhiteComponent } from './pages/industries/whitepaper/mediawhite/me
 import { RegistrationComponent } from './pages/registration/registration.component';
 import { LoginComponent } from './pages/login/login.component';
 import { WelcomeComponent } from './pages/welcome/welcome.component';
+import { ReactContainerComponent } from './pages/react-container/react-container.component';
 import { authGuard } from './guards/auth.guard';
 import { FilesComponent } from './pages/files/files.component';
 
@@ -77,7 +78,12 @@ export const routes: Routes = [
   { path: 'media-communications/whitepaper', component: MediawhiteComponent, title: "Media And Communication Whitepaper - Sumitech" },
   { path: 'registration', component: RegistrationComponent, title: "Registration - Sumitech" },
   { path: 'login', component: LoginComponent },
-  { path: 'welcome', component: WelcomeComponent, canActivate: [authGuard] },
+  //{ path: 'welcome', component: WelcomeComponent, canActivate: [authGuard] },
+  { path: 'welcomePage', 
+    component: ReactContainerComponent,
+    canActivate: [authGuard]
+  },
+  {path: 'addEmployee',component :ReactContainerComponent,canActivate:[authGuard]},
   { path: ':ParentFolderName/files', component: FilesComponent, canActivate: [authGuard] },  
   { path: ':ParentFolderName/:ParentSubFolderName/files', component: FilesComponent, canActivate: [authGuard] },
   { path: ':ParentFolderName/:ParentSubFolderName/:ParentSubChildFolderName/files', component: FilesComponent, canActivate: [authGuard] },

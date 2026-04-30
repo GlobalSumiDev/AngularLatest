@@ -27,7 +27,8 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.loginForm = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.email]],
+    //  email: ['', [Validators.required, Validators.email]],
+      email:['',Validators.required],
       password: ['', Validators.required]
     });
   }
@@ -38,7 +39,7 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.authService.login(this.loginForm.value).subscribe(
+    /*this.authService.login(this.loginForm.value).subscribe(
       response => {
         this.router.navigate(['/welcome']);  // Navigate to welcome page on success
       },
@@ -46,6 +47,23 @@ export class LoginComponent implements OnInit {
         // Show toaster notification
         this.toastr.error('Please contact support and try again after some time', 'Login Failed');
       }
-    );
+    );*/
+       this.authService.login(this.loginForm.value).subscribe(
+  response => {
+    // Store user data for React app to access
+    localStorage.setItem('userEmail', response.email || response.userEmail);
+    
+    if (response.token) {
+      localStorage.setItem('token', response.token);
+    }
+    
+    // Navigate to React app
+    this.router.navigate(['/welcomePage']);
+  },
+  error => {
+    console.error('Login failed', error);
+    // Handle error
+  }
+);
   }
 }
