@@ -31,7 +31,7 @@
     "jquery": "^3.7.1",
     "modal-video": "^2.4.8",
     "ngx-countries-dropdown": "^2.1.0",
-    "ngx-slick-carousel": "^17.0.0",
+    "ngx-slick-carousel": "^18.0.0",
     "ngx-toastr": "^18.0.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
