@@ -93,7 +93,7 @@ import { tap } from 'rxjs/operators';
 })
 export class AuthenticationService {
 
-  private apiUrl = 'http://globalsumi-alb-1058295331.eu-north-1.elb.amazonaws.com/party-api/user/token';
+  private apiUrl = 'https://globalsumi.com/party-api/user/token';
   private tokenKey = 'authToken';
   private currentUserEmailKey = 'currentUserEmail';
 

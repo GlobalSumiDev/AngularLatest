@@ -27,7 +27,7 @@ import { createRoot } from 'react-dom/client';
 import singleSpaReact from 'single-spa-react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App';
-import Employee from './Employee';
+import Employee from './employee';
 
 const RootComponent =() => {
   return (
