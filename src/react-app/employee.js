@@ -1114,7 +1114,7 @@ const handleUpdateVisaHistory = async (e) => {
     const dependentResult = await dependentRes.json();
     console.log('Dependent created:', dependentResult);
 
-    // ── Step 2: Get all parties to find newly created dependent
+   
     const allPartiesRes = await fetch(
       `${config.BASE_URL}/party/get-all-parties`,
       { headers }
