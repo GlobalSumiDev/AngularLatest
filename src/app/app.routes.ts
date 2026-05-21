@@ -84,6 +84,7 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {path: 'addEmployee',component :ReactContainerComponent,canActivate:[authGuard]},
+  { path:  'userPage',component :ReactContainerComponent,canActivate:[authGuard]},
   { path: ':ParentFolderName/files', component: FilesComponent, canActivate: [authGuard] },  
   { path: ':ParentFolderName/:ParentSubFolderName/files', component: FilesComponent, canActivate: [authGuard] },
   { path: ':ParentFolderName/:ParentSubFolderName/:ParentSubChildFolderName/files', component: FilesComponent, canActivate: [authGuard] },

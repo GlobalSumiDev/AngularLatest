@@ -311,7 +311,7 @@ const App = () => {
     try {
       console.log('loading folders for email:', email);
       console.log('token:',localStorage.getItem('authToken'));
-      const apiUrl = `https://app.globalsumi.com/api/folders/byUserEmail?userEmail=${encodeURIComponent(email)}`;
+      const apiUrl = `${config.BASE_URL}/document-type/get-all`;
       console.log('apiurl:',apiUrl);
       const token = localStorage.getItem('authToken');
       
@@ -330,14 +330,26 @@ const App = () => {
     }
   };
 
-  const handleShowFolders = () => {
-   /* if (foldersVisible) {
+ {/*const handleShowFolders = () => {
+    if (foldersVisible) {
       setFoldersVisible(false);
     } else if (userEmail) {
       loadFolders(userEmail);
-    }*/
+    }
    alert('No folder found');
-  };
+  };*/} 
+
+  const handleShowFolders = () =>{
+    setEmployeesVisible(false);
+    setFoldersVisible((prev) => {
+      const newState =!prev;
+      if(!prev && userEmail){
+        loadFolders(userEmail);
+      }
+      return newState
+
+    })
+  }
   
 
   const loadEmployees = async () => {
@@ -380,9 +392,9 @@ const App = () => {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const apiUrl = `https://app.globalsumi.com/api/folders/createParentFolder?parentFolderName=${encodeURIComponent(trimmedName)}&userEmail=${encodeURIComponent(userEmail)}`;
-      const response = await fetch(apiUrl, { method: 'POST', headers });
-      const data = await response.json();
+     // const apiUrl = `https://app.globalsumi.com/api/folders/createParentFolder?parentFolderName=${encodeURIComponent(trimmedName)}&userEmail=${encodeURIComponent(userEmail)}`;
+        const response = await fetch(`${config.BASE_URL}/document-type/create`, { headers });
+       const data = await response.json();
       if (data.message === 'Folder already exists') {
         alert(`Folder '${trimmedName}' already exists.`);
       } else {
@@ -572,7 +584,7 @@ const App = () => {
   
 
             {/* Folders Section */}
-            {foldersVisible && (
+         {/*   {foldersVisible && (
               <div className="folder-list">
                 <h3 className="folder-section-title">Your Folders</h3>
                 {loading ? (
@@ -605,7 +617,60 @@ const App = () => {
                   </div>
                 )}
               </div>
-            )}
+            )}*/}
+
+                   {foldersVisible && (
+  <>
+    {/* CREATE FOLDER */}
+    <form onSubmit={createFolder} style={{ marginBottom: '2rem' }}>
+      <div className="welcome-input-group">
+        <input
+          value={folderName}
+          onChange={(e) => setFolderName(e.target.value)}
+          className="welcome-form-control"
+          placeholder="Enter Folder Name"
+        />
+
+        <button type="submit" className="welcome-btn-primary">
+          Create Folder
+        </button>
+      </div>
+    </form>
+
+    {/* FOLDER LIST */}
+    <div className="folder-list">
+      <h3 className="folder-section-title">Your Folders</h3>
+
+      {loading ? (
+        <p>Loading folders...</p>
+      ) : folders.length === 0 ? (
+        <p>No folders found.</p>
+      ) : (
+        <div className="folders-grid">
+          {folders.map((folder, index) => (
+            <div className="folder-item" key={index}>
+              <h2 className="folder-name">
+                {folder.doc_name || folder.parentFolderName}
+              </h2>
+
+              <img
+                src="/assets/images/Folder_Image.png"
+                className="folder-icon"
+                onClick={() => selectFolder(folder)}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </>
+)}
+
+
+
+
+
+
 
           </div>
         </div>

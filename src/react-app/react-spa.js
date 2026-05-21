@@ -28,6 +28,7 @@ import singleSpaReact from 'single-spa-react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App';
 import Employee from './employee';
+import User from './User';
 
 const RootComponent =() => {
   return (
@@ -35,6 +36,7 @@ const RootComponent =() => {
       <Routes>
         <Route path="/welcomePage" element={<App />} />
         <Route path="/addEmployee" element={<Employee />} />
+        <Route path="/userPage" element={<User/>} />
       </Routes>
     </BrowserRouter>
   )

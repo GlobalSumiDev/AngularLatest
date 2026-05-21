@@ -93,6 +93,11 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
           onClick={onShowFolders}>
           <span className="menu-icon">📁</span><span>Folders</span>
         </li>
+        <li
+          className={activePage === 'folders' ? 'active' : ''}
+          onClick={()=> window.location.href = '/userPage'}>
+          <span className="menu-icon">🧑</span><span>User</span>
+        </li>
       </ul>
     </aside>
   );
