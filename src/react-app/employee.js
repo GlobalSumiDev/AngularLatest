@@ -776,7 +776,7 @@ useEffect(() => {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const response = await fetch(`${config.BASE_URL}/bank`, {
+      const response = await fetch(`${config.BASE_URL}/bank/`, {
         method: 'POST', headers, body: JSON.stringify({ ...bankFormData, party_id: partyId })
       });
       if (!response.ok) throw new Error('Failed to save bank');
@@ -798,7 +798,7 @@ useEffect(() => {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const response = await fetch(`${config.BASE_URL}/contact`, {
+      const response = await fetch(`${config.BASE_URL}/contact/`, {
         method: 'POST', headers, body: JSON.stringify({ ...contactFormData, party_id: partyId })
       });
       if (!response.ok) throw new Error('Failed to save contact');
@@ -820,7 +820,7 @@ useEffect(() => {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const response = await fetch(`${config.BASE_URL}/education`, {
+      const response = await fetch(`${config.BASE_URL}/education/`, {
         method: 'POST', headers,
         body: JSON.stringify({ party_id: partyId, degree: educationFormData.degree, university_name: educationFormData.university_name, year_awarded: parseInt(educationFormData.year_awarded), coursework_details: educationFormData.coursework_details })
       });
@@ -931,7 +931,7 @@ useEffect(() => {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const response = await fetch(`${config.BASE_URL}/immigration`, {
+      const response = await fetch(`${config.BASE_URL}/immigration/`, {
         method: 'POST', headers, body: JSON.stringify({ ...immigrationFormData, party_id: partyId })
       });
       if (!response.ok) throw new Error('Failed to save immigration');
