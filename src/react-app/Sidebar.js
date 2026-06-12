@@ -1,8 +1,27 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import config from './config';
 
 const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
+    // ── Fetch user role
+    const fetchUserRole = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const res = await fetch(`${config.BASE_URL}/user/me`, { headers });
+        const data = await res.json();
+        console.log('user role:', data.role);
+        setUserRole(data.role || '');
+      } catch (err) {
+        console.error('Error fetching user role:', err);
+      }
+    };
+    fetchUserRole();
+
+    // ── Styles
     const style = document.createElement('style');
     style.id = 'sidebar-styles';
     style.innerHTML = `
@@ -32,7 +51,6 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
       .sidebar-menu li:hover:not(.active) {
         background-color: #f0f0f0;
       }
-      
       .menu-icon {
         font-size: 1.2rem;
       }
@@ -49,12 +67,10 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
         border-radius: 8px;
         margin-right: 10px;
       }
-      .sidebar-menu li:hover{
-          transform: scale(1.05);
-          color:#3dce41;
+      .sidebar-menu li:hover {
+        transform: scale(1.05);
+        color: #3dce41;
       }
-         
-        
     `;
     if (!document.getElementById('sidebar-styles')) {
       document.head.appendChild(style);
@@ -65,39 +81,61 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
     };
   }, []);
 
+  //  Check if admin
+  const isAdmin = userRole.toLowerCase() === 'admin' 
   return (
     <aside className="sidebar">
       <ul className="sidebar-menu">
+
+        {/* ── Show for ALL roles */}
         <li
           className={activePage === 'parties' ? 'active' : ''}
           onClick={onShowEmployees}>
           <span className="menu-icon">👥</span><span>Parties</span>
         </li>
-        <li
-          className={activePage === 'beneficiary' ? 'active' : ''}
-          onClick={() => alert('Beneficiary coming soon!')}>
-          <span className="menu-icon">👤</span><span>Beneficiary</span>
-        </li>
-        <li
-          className={activePage === 'add-employee' ? 'active' : ''}
-          onClick={() => window.location.href = '/addEmployee'}>
-          <span className="menu-icon">➕</span><span>Add Employees</span>
-        </li>
-        <li
-          className={activePage === 'add-beneficiary' ? 'active' : ''}
-          onClick={() => alert('Add Beneficiary coming soon!')}>
-          <span className="menu-icon">➕</span><span>Add Beneficiary</span>
-        </li>
+
+        
+
         <li
           className={activePage === 'folders' ? 'active' : ''}
           onClick={onShowFolders}>
           <span className="menu-icon">📁</span><span>Folders</span>
         </li>
+
+        {/* ── Show ONLY for Admin */}
+        {isAdmin && (
+          <li
+            className={activePage === 'add-employee' ? 'active' : ''}
+            onClick={() => window.location.href = '/addEmployee'}>
+            <span className="menu-icon">➕</span><span>Add Employees</span>
+          </li>
+        )}
+        {isAdmin &&(
         <li
-          className={activePage === 'folders' ? 'active' : ''}
-          onClick={()=> window.location.href = '/userPage'}>
-          <span className="menu-icon">🧑</span><span>User</span>
+          className={activePage === 'beneficiary' ? 'active' : ''}
+          onClick={() => alert('Beneficiary coming soon!')}>
+          <span className="menu-icon">👤</span><span>Beneficiary</span>
         </li>
+        )
+
+        }
+
+        {isAdmin && (
+          <li
+            className={activePage === 'add-beneficiary' ? 'active' : ''}
+            onClick={() => alert('Add Beneficiary coming soon!')}>
+            <span className="menu-icon">➕</span><span>Add Beneficiary</span>
+          </li>
+        )}
+
+        {isAdmin && (
+          <li
+            className={activePage === 'user' ? 'active' : ''}
+            onClick={() => window.location.href = '/userPage'}>
+            <span className="menu-icon">🧑</span><span>User</span>
+          </li>
+        )}
+
       </ul>
     </aside>
   );

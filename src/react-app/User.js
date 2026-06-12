@@ -22,9 +22,11 @@ const User = () => {
   const [resetFeedback, setResetFeedback] = useState('');
   const [isResetting, setIsResetting] = useState(false);
 
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
+
   const [loginUserId, setLoginUserId] = useState(null);
   const [isUpdatePasswordOpen, setIsUpdatePasswordOpen] = useState(false);
-const [updatePasswordData, setUpdatePasswordData] = useState({
+  const [updatePasswordData, setUpdatePasswordData] = useState({
   email: '',
   old_password: '',
   new_password: '',
@@ -32,6 +34,16 @@ const [updatePasswordData, setUpdatePasswordData] = useState({
 });
 const [updatePasswordFeedback, setUpdatePasswordFeedback] = useState('');
 const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
+const [isUpdateUserOpen,setIsUpdateUserOpen] = useState(false);
+const [updateUserData, setUpdateUserData] = useState({
+  username: '',
+  email: '',
+  role: '',
+  status: 'true',
+});
+const [updateUserFeedback, setUpdateUserFeedback] = useState('');
+const [isUpdatingUser, setIsUpdatingUser] =useState(false);
  
   
  
@@ -174,7 +186,7 @@ const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
  
       if (!response.ok) throw new Error('Failed to delete user');
  
-      // Remove from list
+      
       setUsers(prev => prev.filter(user => user.id !== userId));
       alert('User deleted successfully!');
     } catch (error) {
@@ -229,6 +241,88 @@ const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
     setResetFeedback(`❌ ${error.message}`);
   } finally {
     setIsResetting(false);
+  }
+};
+
+const handleUpdateUser = async (e) => {
+ 
+  
+  setIsUpdatingUser(true);
+  setUpdateUserFeedback('Updating user...');
+
+  try {
+    const token = localStorage.getItem('authToken');
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+
+    const payload = {
+      username: updateUserData.username,
+      email: updateUserData.email,
+      role: updateUserData.role,
+      status: updateUserData.status,
+    };
+
+    console.log('Update user payload:', payload);
+
+    const response = await fetch(
+      `${config.BASE_URL}/user/update-user?user_id=${selectedUser.id}`,
+      { method: 'PUT', headers, body: JSON.stringify(payload) }
+    );
+
+    const responseText = await response.text();
+    console.log('Update user response:', responseText);
+
+    if (!response.ok) throw new Error(`Failed: ${responseText}`);
+
+    
+    setUsers(prev => prev.map(u =>
+      u.id === selectedUser.id ? { ...u, ...payload } : u
+    ));
+
+    setUpdateUserFeedback('✅ User updated successfully!');
+    setTimeout(() => {
+      setIsUpdateUserOpen(false);
+      setSelectedUser(null);
+      setUpdateUserFeedback('');
+    }, 1000);
+
+  } catch (error) {
+    setUpdateUserFeedback(`❌ ${error.message}`);
+  } finally {
+    setIsUpdatingUser(false);
+  }
+};
+
+
+
+const handleActivateUser = async (userId, currentStatus) => {
+  try {
+    const token =localStorage.getItem('authToken');
+    console.log('token for toggle:', token);
+    const headers={ 'Content-Type':'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+   // if(token) headers['Authorization'] = 'Bearer ${token}';
+   console.log('headres:', headers);
+   console.log('userId:', userId)
+
+    const response = await fetch(
+      `${config.BASE_URL}/user/users/${userId}/toggle-status`,
+      {method:'PUT' , headers}
+      );
+      const responseText = await response.text();
+      console.log('toggle status response:',responseText);
+      if(!response.ok) throw new Error(`failed : ${responseText}`)
+      setUsers(prev => prev.map(u =>
+        u.id === userId ? { ...u,status: !currentStatus } : u
+      ));
+      alert(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
+    
+  } catch(error) {
+    console.error('error:',error);
+    alert('failed:${error.message}')
   }
 };
    
@@ -331,13 +425,13 @@ const handleUpdatePassword = async (e) => {
  
           {/* ── Create User Form */}
         
-{isFormOpen && (
-  <div style={{
+   {isFormOpen && (
+     <div style={{
     position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
     backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     overflowY: 'auto'
-  }}>
+     }}>
     <div style={{
       backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem',
       width: '400px', maxWidth: '90%', boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
@@ -457,6 +551,7 @@ const handleUpdatePassword = async (e) => {
                     <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: '600' }}>Username</th>
                     <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: '600' }}>Email</th>
                     <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: '600' }}>Role</th>
+                     <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: '600' }}>Status</th>
                     
                     <th style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: '600' }}>Action</th>
                   </tr>
@@ -472,6 +567,24 @@ const handleUpdatePassword = async (e) => {
                       <td style={{ padding: '0.75rem 1rem' }}>{user.username}</td>
                       <td style={{ padding: '0.75rem 1rem' }}>{user.email}</td>
                       <td style={{ padding: '0.75rem 1rem' }}>{user.role}</td>
+                     <td style={{padding: '0.75rem 1rem'}}>
+                      
+                      <button
+                         onClick={() =>handleActivateUser(user.id,user.status)}
+                         style={{
+                          padding: '0.25rem 0.75rem',
+                          backgroundColor: user.status ? '#28a745' : '#ffc107',
+                          color: user.status ? 'white' : '#212529',
+                          border:'none',
+                          borderRadius:'1rem',
+                          cursor:'pointer',
+                          fontSize:'0.85rem',
+                          fontWeight:'500'
+                         }}>
+                          {user.status ? 'Activated' : 'Activate'}
+                         </button>
+
+                       </td>
                       
                      <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
   
@@ -507,7 +620,25 @@ const handleUpdatePassword = async (e) => {
                     <MdLockReset color="#218838" size={20} />
                    </button>
 
-                  {user.id === loginUserId && (
+                  <button
+                    onClick={() => {
+                             setSelectedUser(user);
+                             setUpdateUserData({
+                             username: user.username,
+                             email: user.email,
+                             role: user.role,
+                             status: user.status,
+                           });
+                        setIsUpdateUserOpen(true);
+                        setUpdateUserFeedback('');
+                     }}
+                    title="Update User"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                    ✏️
+                 </button>
+
+
+                {user.id === loginUserId && (
                    <button
                       onClick={() => {
                                setUpdatePasswordData({
@@ -621,6 +752,155 @@ const handleUpdatePassword = async (e) => {
     </div>
   </div>
 )}
+
+{/*Update User Modal  */}
+
+
+{isUpdateUserOpen && selectedUser && (
+  <div style={{
+    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000,
+    display: 'flex', alignItems: 'center', justifyContent: 'center'
+  }}>
+    <div style={{
+      backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem',
+      width: '400px', maxWidth: '90%', boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+      maxHeight: '90vh', overflowY: 'auto'
+    }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: '600' }}>Update User</h3>
+        <button type="button"
+          onClick={() => { setIsUpdateUserOpen(false); setUpdateUserFeedback(''); }}
+          style={{ padding: '0.3rem 0.75rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+          ✕
+        </button>
+      </div>
+
+      {/* Feedback */}
+      {updateUserFeedback && (
+        <div style={{
+          padding: '0.75rem', marginBottom: '1rem', borderRadius: '0.25rem',
+          backgroundColor: updateUserFeedback.includes('✅') ? '#d4edda' : '#f8d7da',
+          color: updateUserFeedback.includes('✅') ? '#155724' : '#721c24'
+        }}>
+          {updateUserFeedback}
+        </div>
+      )}
+
+      <form >
+
+        {/* Username */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={labelStyle}>Username <span style={{ color: 'red' }}>*</span></label>
+          <input type="text"
+            value={updateUserData.username}
+            onChange={(e) => setUpdateUserData({ ...updateUserData, username: e.target.value })}
+            style={inputStyle} required disabled={isUpdatingUser}
+            placeholder="Enter username" />
+        </div>
+
+        {/* Email */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={labelStyle}>Email <span style={{ color: 'red' }}>*</span></label>
+          <input type="email"
+            value={updateUserData.email}
+            onChange={(e) => setUpdateUserData({ ...updateUserData, email: e.target.value })}
+            style={inputStyle} required disabled={isUpdatingUser}
+            placeholder="Enter email" />
+        </div>
+
+        {/* Role */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={labelStyle}>Role <span style={{ color: 'red' }}>*</span></label>
+          <select value={updateUserData.role}
+            onChange={(e) => setUpdateUserData({ ...updateUserData, role: e.target.value })}
+            style={inputStyle} required disabled={isUpdatingUser}>
+            <option value="User">User</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+
+        {/* Status */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={labelStyle}>Status <span style={{ color: 'red' }}>*</span></label>
+          <select value={updateUserData.status}
+            onChange={(e) => setUpdateUserData({ ...updateUserData, status: e.target.value === 'true' })}
+            style={inputStyle} disabled={isUpdatingUser}>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+
+        {/* Buttons */}
+       {/* <div style={{ display: 'flex', gap: '1rem' }}>
+          <button type="submit"
+            style={{ ...buttonStyle, flex: 1 }}
+            disabled={isUpdatingUser}>
+            {isUpdatingUser ? 'Updating...' : 'Update User'}
+          </button>
+          <button type="button"
+            onClick={() => { setIsUpdateUserOpen(false); setUpdateUserFeedback(''); }}
+            style={{ ...buttonStyle, flex: 1, backgroundColor: 'red' }}
+            disabled={isUpdatingUser}>
+            Cancel
+          </button>
+        </div>*/}
+
+         {/* Buttons */}
+       <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+            {!showUpdateConfirm ? (
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button type="button"
+                onClick={() => setShowUpdateConfirm(true)}
+                style={{ ...buttonStyle, flex: 1 }}
+                disabled={isUpdatingUser}>
+                Update User
+              </button>
+              <button type="button"
+                 onClick={() => { setIsUpdateUserOpen(false); setUpdateUserFeedback(''); }}
+                 style={{ ...buttonStyle, flex: 1, backgroundColor: 'red' }}
+                 disabled={isUpdatingUser}>
+                 Cancel
+                </button>
+            </div>
+         ) : (
+            <div>
+              <p style={{ textAlign: 'center', fontWeight: '600', color: '#333', marginBottom: '1rem' }}>
+                ⚠️ Are you sure you want to update this user?
+              </p>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="button"
+                 onClick={() => setShowUpdateConfirm(false)}
+                 style={{ ...buttonStyle, flex: 1, backgroundColor: '#6c757d' }}>
+                  No
+                </button>
+                <button type="button"
+                 onClick={async () => { setShowUpdateConfirm(false); await handleUpdateUser(); }}
+                 style={{ ...buttonStyle, flex: 1, backgroundColor: '#28a745' }}>
+                   Yes, Update
+                </button>
+              </div>
+           </div>
+         )}
+       </div>
+
+
+
+
+
+
+
+
+
+
+      </form>
+    </div>
+  </div>
+)}
+
+
+
 
 {/* ── Update Password Modal */}
 {isUpdatePasswordOpen && (

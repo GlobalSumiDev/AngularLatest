@@ -21,12 +21,12 @@ export class RegistrationComponent implements OnInit {
   constructor(private fb: FormBuilder, private http: HttpClient, private toastrService: ToastrService) {
     this.registrationForm = this.fb.group({
       firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
-      phoneNumber: ['', Validators.required],
+     
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmpassword: ['', Validators.required],
-      terms: [false, Validators.requiredTrue]
+      role:['',Validators.required],
+      status:[ ,Validators.required]
     }, {
       validators: this.mustMatch('password', 'confirmpassword')
     });
@@ -37,12 +37,23 @@ export class RegistrationComponent implements OnInit {
   get f() { return this.registrationForm.controls; }
 
   onSubmit() {
+    console.log('submit clicked');
     this.submitted = true;
-    if (this.registrationForm.invalid) {
+    console.log('Form Vlaue:', this.registrationForm.value);
+    console.log('Form Valid:',this.registrationForm.valid);
+    if(this.registrationForm.invalid){
+      console.log('form invalid');
       return;
+    
     }
 
-    this.http.post<{ responseMessage: string }>(registrationAPI, this.registrationForm.value)
+    this.http.post<{ responseMessage: string }>('https://globalsumi.com/party-api/user/register', {
+      username: this.registrationForm.value.firstName,
+      email:this.registrationForm.value.email,
+      password:this.registrationForm.value.password,
+      role:'User',
+      status:false
+    })
     .subscribe(
       response => {
         if (response.responseMessage === 'Registration successful') {

@@ -13,35 +13,38 @@
                   <div class="d-flex flex-row align-items-center mb-4">
                     <i class="fas fa-user fa-lg me-3 fa-fw"></i>
                     <div data-mdb-input-init class="form-outline flex-fill mb-0">
-                      <label class="form-label" for="form3Example1c">First Name</label>
+                      <label class="form-label" for="form3Example1c">Username</label>
                       <input type="text" id="form3Example1c" class="form-control" formControlName="firstName" />
                       <div *ngIf="submitted && registrationForm.get('firstName')?.errors" class="invalid-feedback">
-                        <div *ngIf="registrationForm.get('firstName')?.errors?.['required']">Name is required</div>
+                        <div *ngIf="registrationForm.get('firstName')?.errors?.['required']">Username is required</div>
                       </div>
                     </div>
                   </div>
 
+                    <div class="d-flex flex-row align-items-center mb-4">
+                    <i class="fas fa-user fa-lg me-3 fa-fw"></i>
+                    <div data-mdb-input-init class="form-outline flex-fill mb-0">
+                      <label class="form-label" for="form3Example1c">Role</label>
+                      <input type="text" id="form3Example1c" class="form-control" formControlName="role" />
+                      <div *ngIf="submitted && registrationForm.get('role')?.errors" class="invalid-feedback">
+                        <div *ngIf="registrationForm.get('role')?.errors?.['required']">Role is required</div>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div class="d-flex flex-row align-items-center mb-4">
                     <i class="fas fa-user fa-lg me-3 fa-fw"></i>
                     <div data-mdb-input-init class="form-outline flex-fill mb-0">
-                      <label class="form-label" for="form3Example1c">Last Name</label>
-                      <input type="text" id="form3Example1c" class="form-control" formControlName="lastName" />
-                      <div *ngIf="submitted && registrationForm.get('lastName')?.errors" class="invalid-feedback">
-                        <div *ngIf="registrationForm.get('lastName')?.errors?.['required']">Name is required</div>
+                      <label class="form-label" for="form3Example1c">Status</label>
+                      <input type="text" id="form3Example1c" class="form-control" formControlName="status" />
+                      <div *ngIf="submitted && registrationForm.get('status')?.errors" class="invalid-feedback">
+                        <div *ngIf="registrationForm.get('role')?.errors?.['required']">Status is required</div>
                       </div>
                     </div>
                   </div>
+                
 
-                  <div class="d-flex flex-row align-items-center mb-4">
-                    <i class="fas fa-phone fa-lg me-3 fa-fw"></i>
-                    <div data-mdb-input-init class="form-outline flex-fill mb-0">
-                      <label class="form-label" for="phoneNumber">Phone</label>
-                      <input type="tel" id="phoneNumber" class="form-control" formControlName="phoneNumber" />
-                      <div *ngIf="submitted && registrationForm.get('phoneNumber')?.errors" class="invalid-feedback">
-                        <div *ngIf="registrationForm.get('phoneNumber')?.errors?.['required']">Phone number is required</div>
-                      </div>
-                    </div>
-                  </div>
+                 
 
                   <div class="d-flex flex-row align-items-center mb-4">
                     <i class="fas fa-envelope fa-lg me-3 fa-fw"></i>
@@ -79,6 +82,7 @@
                       </div>
                     </div>
                   </div>
+                   
 
                   <div class="form-check d-flex justify-content-center mb-5">
                     <input class="form-check-input me-2" type="checkbox" value="" id="form2Example3c" formControlName="terms" />

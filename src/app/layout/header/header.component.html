@@ -27,6 +27,7 @@
         <li class="menu-item menu-dropdown" [ngClass]="{'active': industries}" (click)="openIndustries()">
           <span class="menu-link" data-toggle="submenu">Industries<i class="bx bx-chevron-down"></i></span>
           <ul class="submenu industries-submenu">
+            <li class="submenu-item" style="font-weight: 500;">WE SUPPORT</li>
             <li class="submenu-item" (click)="closeMenu()"><a routerLink="/bankfinancial"
                 routerLinkActive="sub-menu-active" class="submenu-link">Banking and
                 Financials
@@ -69,6 +70,7 @@
         <li class="menu-item menu-dropdown" [ngClass]="{'active': services}" (click)="openServices()">
           <span class="menu-link" data-toggle="submenu">Services<i class="bx bx-chevron-down"></i></span>
           <ul class="submenu ser-submenu">
+            <li class="submenu-item" style="font-weight: 500;">WE PROVIDE</li>
             <li class="submenu-item" (click)="closeMenu()"><a routerLink="/ai-ml" routerLinkActive="sub-menu-active"
                 class="submenu-link">AI
                 and ML
@@ -117,13 +119,14 @@
         <li class="menu-item menu-dropdown" [ngClass]="{'active': products}" (click)="openProducts()">
           <a class="menu-link" routerLink="#" data-toggle="submenu">Products<i class="bx bx-chevron-down"></i></a>
           <ul class="submenu">
-            <li class="submenu-item" (click)="closeMenu()"><a routerLink="/medtech" routerLinkActive="sub-menu-active"
-                class="submenu-link">MedTechMD</a>
-            </li>
-            <li class="submenu-item" (click)="closeMenu()"><a routerLink="/searchblox"
-                routerLinkActive="sub-menu-active" class="submenu-link">Searchblox
+             <li class="submenu-item" (click)="closeMenu()"><a routerLink="/searchblox"
+                routerLinkActive="sub-menu-active" class="submenu-link">AGENTIC AI
               </a>
             </li>
+            <li class="submenu-item" (click)="closeMenu()"><a routerLink="/medtech" routerLinkActive="sub-menu-active"
+                class="submenu-link">GEN AI</a>
+            </li>
+           
             <li class="submenu-item" (click)="closeMenu()"><a routerLink="/irms" routerLinkActive="sub-menu-active"
                 class="submenu-link">IRMS</a>
             </li>

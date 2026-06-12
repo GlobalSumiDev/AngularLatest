@@ -277,6 +277,7 @@ const App = () => {
   const [employees, setEmployees] = useState([]);
   const [employeesVisible, setEmployeesVisible] = useState(false);
   const [employeesLoading, setEmployeesLoading] = useState(false);
+  const [searchTerm,setSearchTerm] = useState('');
 
   useEffect(() => {
     const email = getCurrentUserEmail();
@@ -514,21 +515,39 @@ const App = () => {
               </div>
             )}*/}
 
-{employeesVisible && (
-  <div style={{ maxHeight: '400px' }}>
-  <div style={{ 
-  maxHeight: '400px',      
-  overflowY: 'auto',       
-  overflowX: 'auto',       
-  border: '1px solid #dee2e6',
-  borderRadius: '8px',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-}}>
-  <table style={{ 
-    width: '100%', 
-    borderCollapse: 'collapse',
-    backgroundColor: 'white'
-  }}>
+      {employeesVisible && (
+        <div style={{ maxHeight: '400px' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <input
+               type="text"
+               placeholder="🔍 Search by name..."
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+               style={{
+                width: '100%',
+                padding: '0.75rem 1rem',
+                border: '1px solid #ced4da',
+                borderRadius: '0.5rem',
+                fontSize: '1rem',
+                boxSizing: 'border-box',
+                outline: 'none',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+               }}
+             />
+           </div>
+         <div style={{ 
+           maxHeight: '400px',      
+           overflowY: 'auto',       
+           overflowX: 'auto',       
+           border: '1px solid #dee2e6',
+           borderRadius: '8px',
+           boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+        }}>
+        <table style={{ 
+          width: '100%', 
+          borderCollapse: 'collapse',
+          backgroundColor: 'white'
+        }}>
     
     <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
       <tr style={{ backgroundColor: '#007bff' }}>
@@ -543,14 +562,17 @@ const App = () => {
 
     
     <tbody>
-      {employees.length === 0 ? (
+  { /* {employees.length === 0 ? (
         <tr>
           <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: '#6c757d' }}>
             No employees found.
           </td>
         </tr>
-      ) : (
-        employees.map((emp, index) => (
+      ) : (*/
+
+
+
+       /* employees.map((emp, index) => (
           <tr 
             key={emp.party_id || index}
             onClick={() => {
@@ -561,7 +583,35 @@ const App = () => {
               cursor: 'pointer',
               borderBottom: '1px solid #e9ecef',
               transition: '0.2s ease'
-            }}
+            }}*/
+
+        employees.filter(emp => {
+         const fullName = `${emp.first_name || ''} ${emp.middle_name || ''} ${emp.last_name || ''}`.toLowerCase();
+         return fullName.includes(searchTerm.toLowerCase());
+        }).length === 0 ? (
+       <tr>
+        <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: '#6c757d' }}>
+         {searchTerm ? `No results found for "${searchTerm}"` : 'No employees found.'}
+        </td>
+      </tr>
+    ) : (
+
+         employees
+            .filter(emp => 
+            (emp.first_name || '').toLowerCase().includes(searchTerm.toLowerCase())
+           )
+        .map((emp, index) => (
+         <tr 
+           key={emp.party_id || index}
+           onClick={() => {
+            localStorage.setItem('selectedEmployee', JSON.stringify(emp));
+            window.location.href = '/addEmployee';
+         }}
+          style={{ 
+             cursor: 'pointer',
+             borderBottom: '1px solid #e9ecef',
+             transition: '0.2s ease'
+          }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f8ff'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
           >
@@ -665,14 +715,7 @@ const App = () => {
     </div>
   </>
 )}
-
-
-
-
-
-
-
-          </div>
+      </div>
         </div>
       </div>
     </section>
