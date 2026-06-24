@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { registrationAPI } from '../../constant/api';
 import { ToastrService } from 'ngx-toastr';
+
 
 @Component({
   selector: 'app-registration',
@@ -17,6 +18,7 @@ export class RegistrationComponent implements OnInit {
   registrationForm: FormGroup;
   submitted = false;
   toastVisible = false;
+  registrationSuccess = false;
 
   constructor(private fb: FormBuilder, private http: HttpClient, private toastrService: ToastrService) {
     this.registrationForm = this.fb.group({
@@ -25,15 +27,21 @@ export class RegistrationComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmpassword: ['', Validators.required],
-      role:['',Validators.required],
-      status:[ ,Validators.required]
+     
     }, {
       validators: this.mustMatch('password', 'confirmpassword')
     });
   }
 
-  ngOnInit(): void { }
-
+ ngOnInit(): void {
+  const registered = localStorage.getItem('registrationSuccess');
+  if (registered === 'true') {
+    this.registrationSuccess = true;
+  }
+}
+ngOnDestroy(): void {
+    localStorage.removeItem('registrationSuccess');
+  }
   get f() { return this.registrationForm.controls; }
 
   onSubmit() {
@@ -47,7 +55,7 @@ export class RegistrationComponent implements OnInit {
     
     }
 
-    this.http.post<{ responseMessage: string }>('https://globalsumi.com/party-api/user/register', {
+    this.http.post< any >('https://globalsumi.com/party-api/user/register', {
       username: this.registrationForm.value.firstName,
       email:this.registrationForm.value.email,
       password:this.registrationForm.value.password,
@@ -56,12 +64,14 @@ export class RegistrationComponent implements OnInit {
     })
     .subscribe(
       response => {
-        if (response.responseMessage === 'Registration successful') {
+        console.log(response)
+        if (response && response.id ) {
           this.registrationForm.reset();
           this.submitted = false;
-          this.toastrService.success('Registration successful!');
+          this.registrationSuccess = true;
+          localStorage.setItem('registrationSuccess', 'true');
         } else {
-          this.toastrService.error(response.responseMessage);
+          this.toastrService.error('Registration failed');
         }
       },
       error => {
@@ -95,4 +105,19 @@ export class RegistrationComponent implements OnInit {
       }
     };
   }
+
+   goToLogin() {
+    localStorage.removeItem('registrationSuccess');
+     this.registrationSuccess = false; 
+  }
+
+ showPassword = false;
+ showConfirmPassword = false;
+
+togglePassword() {
+  this.showPassword = !this.showPassword;
+}
+toggleConfirmPassword(){
+  this.showConfirmPassword = !this.showConfirmPassword
+}
 }

@@ -30,7 +30,7 @@ export class AuthenticationService {
   login(credentials: { email: string; password: string }): Observable<any> {
     return this.http.post<any>(this.apiUrl, credentials).pipe(
       tap(response => {
-        console.log('Login response:', response);  // Log the response to check its content
+          // Log the response to check its content
         if (response && response.token) {
           this.storeToken(response.token);
           const user = { email: credentials.email };
@@ -119,18 +119,14 @@ export class AuthenticationService {
       .set('username', credentials.email.trim())    // email value sent as username to API
      //.set('username', 'Admin')
      .set('password', credentials.password.trim());
-      console.log('Sending to API:', {
-    username: credentials.email.trim(),
-    password: credentials.password.trim(),
-    grant_type: 'password'
-  });
+      
     const headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded'
     });
 
     return this.http.post<any>(this.apiUrl, body.toString(), { headers }).pipe(
       tap(response => {
-        console.log('Login response:', response);
+        
         if (response && response.access_token) {
           this.storeToken(response.access_token);
           localStorage.setItem('refreshToken', response.refresh_token);
@@ -169,7 +165,7 @@ export class AuthenticationService {
   // Retrieve the current user's email
   getCurrentUserEmail(): string | null {
     const currentUser = this.currentUserSubject.value;
-    console.log('Current user:', currentUser);
+   
     return currentUser ? currentUser.email : null;
   }
 

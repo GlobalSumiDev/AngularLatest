@@ -286,10 +286,8 @@ const App = () => {
       setError('No user email found. Please log in again.');
       setTimeout(() => window.location.href = '/login', 2000);
     }
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('showEmployees') === 'true'){
-      loadEmployees();
-    }
+    loadEmployees();
+    
   }, []);
 
   const getCurrentUserEmail = () => {
@@ -301,7 +299,8 @@ const App = () => {
       }
       return '';
     } catch (error) {
-      console.error('Error parsing user email:', error);
+      
+       setError(`Failed to load : ${error.message}`);
       return '';
     }
   };
@@ -359,9 +358,9 @@ const App = () => {
     try {
      
       const token = localStorage.getItem('authToken');
-      console.log('token:',token)
+     
       const headers = { 'Content-Type': 'application/json' };
-     console.log('token:',token)
+    
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const response = await fetch(`${config.BASE_URL}/party/get-all-parties`, { headers });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -369,7 +368,7 @@ const App = () => {
       setEmployees(Array.isArray(data) ? data : data.data || data.parties || []);
       setEmployeesVisible(true);
     } catch (error) {
-      console.error('Error loading employees:', error);
+     
       setError(`Failed to load employees: ${error.message}`);
     } finally {
       setEmployeesLoading(false);

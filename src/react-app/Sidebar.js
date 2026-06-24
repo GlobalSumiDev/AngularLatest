@@ -13,7 +13,7 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
         if (token) headers['Authorization'] = `Bearer ${token}`;
         const res = await fetch(`${config.BASE_URL}/user/me`, { headers });
         const data = await res.json();
-        console.log('user role:', data.role);
+        
         setUserRole(data.role || '');
       } catch (err) {
         console.error('Error fetching user role:', err);
@@ -90,7 +90,7 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
         {/* ── Show for ALL roles */}
         <li
           className={activePage === 'parties' ? 'active' : ''}
-          onClick={onShowEmployees}>
+           onClick={() => alert('Party coming soon!')}>
           <span className="menu-icon">👥</span><span>Parties</span>
         </li>
 

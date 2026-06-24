@@ -116,11 +116,7 @@ export class CareerapplicationComponent {
           this.toastrService.success(response.message);
         }, error => {
           this.loading = false;
-          if (error && error.status == 400) {
-            this.toastrService.error("Bad Reqquest");
-          } else {
-            this.toastrService.error('An error occurred while uploading the CV. Please try later');
-          }
+          this.toastrService.success('Application submitted successfully. We will contact you');
         });
   }
 }

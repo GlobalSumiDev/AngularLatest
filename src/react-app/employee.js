@@ -155,7 +155,7 @@ const [showAddDependent, setShowAddDependent] = useState(false);
 
   // ── fetchPartyDetails
   const fetchPartyDetails = async (partyId) => {
-    console.log('=== fetchPartyDetails called with:', partyId);
+   
     try {
       const token = localStorage.getItem('authToken');
       console.log('token:', token);
@@ -201,12 +201,15 @@ const bankRes = await fetch(
 if (bankRes.ok) {
   const bankData = await bankRes.json();
   console.log('bank data:', bankData);
-
-  // ← API returns array of banks for this party
+ 
+   if (bankData.message || !Array.isArray(bankData) && !bankData.bank_id) {
+    console.log('No bank records found');
+    setBankRecords([]);  
+  }else{
   const banks = Array.isArray(bankData) ? bankData : [bankData];
   setBankRecords(banks);
 
-  // ← Auto select first record
+  //  Auto select first record
   if (banks.length > 0) {
     setBankId(banks[0].bank_id);
     setBankFormData({
@@ -218,6 +221,7 @@ if (bankRes.ok) {
     });
     setSelectedBankIndex(0);
   }
+}
 } else {
   console.log('Bank API failed:', bankRes.status);
 }
@@ -230,6 +234,10 @@ const contactRes = await fetch(
 if (contactRes.ok) {
   const contactData = await contactRes.json();
   console.log('contact data:', contactData);
+  if (contactData.message || !Array.isArray(contactData) && !contactData.contact_id) {
+    console.log('No contact records found');
+    setContactRecords([]);  
+  }else{
   const contacts = Array.isArray(contactData) ? contactData : [contactData];
   setContactRecords(contacts);
  if (contacts.length > 0) {
@@ -240,6 +248,7 @@ if (contactRes.ok) {
        });
     setSelectedContactIndex(0);
   }
+}
 } else {
   console.log('Contact API failed:', contactRes.status);
 }
@@ -252,9 +261,13 @@ if (contactRes.ok) {
 if (educationRes.ok) {
   const educationData = await educationRes.json();
   console.log('education data:', educationData);
+  if (educationData.message || !Array.isArray(educationData) && !educationData.education_id) {
+    console.log('No education records found');
+    setEducationRecords([]);  
+  }else{
   const educations = Array.isArray(educationData) ? educationData : [educationData];
   setEducationRecords(educations);
- if (educations.length > 0) {
+  if (educations.length > 0) {
     setEducationId(educations[0].education_id);
     setEducationFormData({
      degree: educations[0].degree || '',
@@ -264,11 +277,13 @@ if (educationRes.ok) {
       });
     setSelectedEducationIndex(0);
   }
+}
 } else {
   console.log('Education API failed:', educationRes.status);
 }
 
-    const clientRes = await fetch(
+
+ const clientRes = await fetch(
   `${config.BASE_URL}/client/party/${partyId}`,
   { headers }
 );
@@ -276,6 +291,10 @@ if (educationRes.ok) {
 if (clientRes.ok) {
   const clientData = await clientRes.json();
   console.log('client data:', clientData);
+    if (clientData.message || !Array.isArray(clientData) && !clientData.client_id) {
+    console.log('No client records found');
+    setClientRecords([]);  
+  }else{
   const clients = Array.isArray(clientData) ? clientData : [clientData];
   setClientRecords(clients);
    if (clients.length > 0) {
@@ -286,6 +305,7 @@ if (clientRes.ok) {
     });
     setSelectedClientIndex(0);
   }
+}
 } else {
   console.log('Client API failed:', clientRes.status);
 }
@@ -298,6 +318,10 @@ if (clientRes.ok) {
 if (experienceRes.ok) {
   const experienceData = await experienceRes.json();
   console.log('experience data:', experienceData);
+  if (experienceData.message || !Array.isArray(experienceData) && !experienceData.experience_id) {
+    console.log('No experience records found');
+    setExperienceRecords([]);  
+  }else{
   const experiences = Array.isArray(experienceData) ? experienceData : [experienceData];
   setExperienceRecords(experiences);
    if (experiences.length > 0) {
@@ -312,8 +336,10 @@ if (experienceRes.ok) {
     });
     setSelectedExperienceIndex(0);
   }
+  }
 } else {
   console.log('Experience API failed:', experienceRes.status);
+  setExperienceRecords([]);
 }
 
 const addressRes = await fetch(
@@ -324,6 +350,10 @@ const addressRes = await fetch(
 if (addressRes.ok) {
   const addressData = await addressRes.json();
   console.log('Address data:', addressData);
+  if (addressData.message || !Array.isArray(addressData) && !addressData.address_id) {
+    console.log('No address records found');
+    setAddressRecords([]);  
+  }else{
   const addresss = Array.isArray(addressData) ? addressData : [addressData];
   setAddressRecords(addresss);
    if (addresss.length > 0) {
@@ -343,6 +373,7 @@ if (addressRes.ok) {
     });
     setSelectedAddressIndex(0);
   }
+}
 } else {
   console.log('Address API failed:', addressRes.status);
 }
@@ -355,6 +386,10 @@ if (addressRes.ok) {
 if (immigrationRes.ok) {
   const immigrationData = await immigrationRes.json();
   console.log('Immigration data:', immigrationData);
+    if (immigrationData.message || !Array.isArray(immigrationData) && !immigrationData.bank_id) {
+    console.log('No immigration records found');
+    setImmigrationRecords([]);  
+  }else{
   const immigrations = Array.isArray(immigrationData) ? immigrationData : [immigrationData];
   setImmigrationRecords(immigrations);
  if (immigrations.length > 0) {
@@ -376,6 +411,7 @@ if (immigrationRes.ok) {
        });
     setSelectedImmigrationIndex(0);
   }
+ }
 } else {
   console.log('Immigration API failed:', immigrationRes.status);
 }
@@ -387,7 +423,11 @@ if (immigrationRes.ok) {
 
 if (visaHistoryRes.ok) {
   const visaHistoryData = await visaHistoryRes.json();
-  console.log('visaHistory data:', visaHistoryData);
+  if (visaHistoryData.message || !Array.isArray(visaHistoryData) && !visaHistoryData.visaHistory_id) {
+    console.log('No visahistory records found');
+    setVisaHistoryRecords([]);  
+  }else{
+  
   const visaHistories = Array.isArray(visaHistoryData) ? visaHistoryData : [visaHistoryData];
   setVisaHistoryRecords(visaHistories);
    if (visaHistories.length > 0) {
@@ -404,6 +444,7 @@ if (visaHistoryRes.ok) {
     });
     setSelectedVisaIndex(0);
   }
+}
 } else {
   console.log('Visahistory API failed:', visaHistoryRes.status);
 }
@@ -1030,7 +1071,7 @@ useEffect(() => {
     if (window.confirm('Are you sure?')) setEmployees(employees.filter(emp => emp.id !== id));
   };
 
-  // ── Reusable Records List Component
+  // ──  Records List Component
   const RecordsList = ({ records, selectedIndex, onSelect, columns }) => {
   if (records.length === 0) return null;
   return (
@@ -1059,6 +1100,7 @@ useEffect(() => {
                   transition: 'background-color 0.2s'
                 }}
                 onClick={() => onSelect(index, record)}
+                
               >
                 <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#495057' }}>{index + 1}</td>
                 {columns.map((col, i) => (
@@ -1253,6 +1295,45 @@ useEffect(() => {
                 ]}
               />
 
+
+
+                    {/* Add New Bank */}
+              
+             <div style={{ borderTop: '2px solid #dee2e6', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+                {!showAddBank ? (
+                   <button
+                   type="button"
+                   onClick={() => {
+                   setBankFormData({ bank_name: '', account_number: '', routing_number: '', bank_status: '', zip_code: '' });
+                   setSelectedBankIndex(null);  
+                   setShowAddBank(true);
+                  }}
+               style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}
+            >
+             + Add New Bank
+           </button>
+          ) : (
+        <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+             <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Bank</h3>
+              <button type="button" onClick={() => setShowAddBank(false)}
+               style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+               ✕ Cancel
+             </button>
+           </div>
+        <form onSubmit={async (e) => { await handleBankSubmit(e); setShowAddBank(false); }} style={{ maxWidth: '600px' }}>
+         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Bank Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="bank_name" value={bankFormData.bank_name} onChange={handleBankInputChange} style={inputStyle} required /></div>
+         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Account Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="account_number" value={bankFormData.account_number} onChange={handleBankInputChange} style={inputStyle} required /></div>
+         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Routing Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="routing_number" value={bankFormData.routing_number} onChange={handleBankInputChange} style={inputStyle} required /></div>
+         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Bank Status</label><select name="bank_status" value={bankFormData.bank_status} onChange={handleBankInputChange} style={inputStyle}><option value="">Select Status</option><option value="Active">Active</option><option value="Inactive">Inactive</option><option value="Pending">Pending</option></select></div>
+         <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Zip Code</label><input type="text" name="zip_code" value={bankFormData.zip_code} onChange={handleBankInputChange} style={inputStyle} /></div>
+         <button type="submit" style={buttonStyle}>Save Bank</button>
+       </form>
+       </div>
+     )}
+    </div>
+
               {/* Selected Record Form */}
               {selectedBankIndex !== null && (
                 <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
@@ -1279,42 +1360,7 @@ useEffect(() => {
                 </div>
               )}
 
-              {/* Add New Bank */}
-              {/* ── Add New Button — shown in both modes */}
-             <div style={{ borderTop: '2px solid #dee2e6', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
-                {!showAddBank ? (
-                   <button
-                   type="button"
-                   onClick={() => {
-                   setBankFormData({ bank_name: '', account_number: '', routing_number: '', bank_status: '', zip_code: '' });
-                   setSelectedBankIndex(null);  // ← deselect current record
-                   setShowAddBank(true);
-                  }}
-               style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem' }}
-            >
-             + Add New Bank
-           </button>
-          ) : (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Bank</h3>
-        <button type="button" onClick={() => setShowAddBank(false)}
-          style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
-          ✕ Cancel
-        </button>
-      </div>
-      <form onSubmit={async (e) => { await handleBankSubmit(e); setShowAddBank(false); }} style={{ maxWidth: '600px' }}>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Bank Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="bank_name" value={bankFormData.bank_name} onChange={handleBankInputChange} style={inputStyle} required /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Account Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="account_number" value={bankFormData.account_number} onChange={handleBankInputChange} style={inputStyle} required /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Routing Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="routing_number" value={bankFormData.routing_number} onChange={handleBankInputChange} style={inputStyle} required /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Bank Status</label><select name="bank_status" value={bankFormData.bank_status} onChange={handleBankInputChange} style={inputStyle}><option value="">Select Status</option><option value="Active">Active</option><option value="Inactive">Inactive</option><option value="Pending">Pending</option></select></div>
-        <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Zip Code</label><input type="text" name="zip_code" value={bankFormData.zip_code} onChange={handleBankInputChange} style={inputStyle} /></div>
-        <button type="submit" style={buttonStyle}>Save Bank</button>
-      </form>
-    </div>
-  )}
-</div>
+        
             </div>
           )}
 
@@ -1338,31 +1384,19 @@ useEffect(() => {
                  { label: 'Email', key: 'email' },
               ]}
               />
-              {selectedContactIndex !== null && (
-                <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Contact {selectedContactIndex + 1} Details</h3>
-                    <button type="button" onClick={() => setEditableForms(prev => ({ ...prev, contact: !prev.contact }))} style={{ padding: '0.4rem 1rem', backgroundColor: editableForms.contact ? '#dc3545' : '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>{editableForms.contact ? '✕ Cancel' : '✏️ Edit'}</button>
-                  </div>
-                  <form onSubmit={handleUpdateContact} style={{ maxWidth: '600px' }}>
-                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Phone Number</label><input type="tel" name="phone_number" value={contactFormData.phone_number} onChange={handleContactInputChange} style={!editableForms.contact ? readOnlyStyle : inputStyle} disabled={!editableForms.contact} /></div>
-                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Email</label><input type="email" name="email" value={contactFormData.email} onChange={handleContactInputChange} style={!editableForms.contact ? readOnlyStyle : inputStyle} disabled={!editableForms.contact} /></div>
-                    {editableForms.contact && <button type="submit" style={buttonStyle}>Update Contact</button>}
-                  </form>
-                </div>
-              )}
-              <div style={{ borderTop: '2px solid #dee2e6', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
-  {!showAddContact ? (
-    <button type="button"
-      onClick={() => {
-        setContactFormData({ phone_number: '', email: '' });
-        setSelectedContactIndex(null);
-        setShowAddContact(true);
-      }}
-      style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem' }}>
-      + Add New Contact
-    </button>
-  ) : (
+
+         <div style={{ borderTop: '2px solid #dee2e6', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+          {!showAddContact ? (
+          <button type="button"
+           onClick={() => {
+           setContactFormData({ phone_number: '', email: '' });
+           setSelectedContactIndex(null);
+           setShowAddContact(true);
+          }}
+          style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
+           + Add New Contact
+         </button>
+      ) : (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Contact</h3>
@@ -1380,6 +1414,22 @@ useEffect(() => {
     </div>
   )}
 </div>
+
+
+              {selectedContactIndex !== null && (
+                <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Contact {selectedContactIndex + 1} Details</h3>
+                    <button type="button" onClick={() => setEditableForms(prev => ({ ...prev, contact: !prev.contact }))} style={{ padding: '0.4rem 1rem', backgroundColor: editableForms.contact ? '#dc3545' : '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>{editableForms.contact ? '✕ Cancel' : '✏️ Edit'}</button>
+                  </div>
+                  <form onSubmit={handleUpdateContact} style={{ maxWidth: '600px' }}>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Phone Number</label><input type="tel" name="phone_number" value={contactFormData.phone_number} onChange={handleContactInputChange} style={!editableForms.contact ? readOnlyStyle : inputStyle} disabled={!editableForms.contact} /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Email</label><input type="email" name="email" value={contactFormData.email} onChange={handleContactInputChange} style={!editableForms.contact ? readOnlyStyle : inputStyle} disabled={!editableForms.contact} /></div>
+                    {editableForms.contact && <button type="submit" style={buttonStyle}>Update Contact</button>}
+                  </form>
+                </div>
+              )}
+             
             </div>
           )}
 
@@ -1404,6 +1454,30 @@ useEffect(() => {
                     { label: 'Year Awarded', key: 'year_awarded' },
                 ]}
               />
+
+       {!showAddEducation ? (
+         <button type="button" onClick={() => { setEducationFormData({ degree: '', university_name: '', year_awarded: '', coursework_details: '' }); setSelectedEducationIndex(null); setShowAddEducation(true); }}
+         style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
+          + Add New Education
+         </button>
+      ) : (
+     <div>
+       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Education</h3>
+        <button type="button" onClick={() => setShowAddEducation(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
+     </div>
+     <form onSubmit={async (e) => { await handleEducationSubmit(e); setShowAddEducation(false); }} style={{ maxWidth: '600px' }}>
+      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Degree <span style={{ color: 'red' }}>*</span></label><input type="text" name="degree" value={educationFormData.degree} onChange={handleEducationInputChange} style={inputStyle} required /></div>
+      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>University Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="university_name" value={educationFormData.university_name} onChange={handleEducationInputChange} style={inputStyle} required /></div>
+      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Year Awarded <span style={{ color: 'red' }}>*</span></label><input type="number" name="year_awarded" value={educationFormData.year_awarded} onChange={handleEducationInputChange} style={inputStyle} min="1950" max="2050" required /></div>
+      <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Coursework Details</label><textarea name="coursework_details" value={educationFormData.coursework_details} onChange={handleEducationInputChange} style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }} /></div>
+      <button type="submit" style={buttonStyle}>Save Education</button>
+     </form>
+    </div>
+     )}
+
+
               {selectedEducationIndex !== null && (
                 <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -1419,27 +1493,7 @@ useEffect(() => {
                   </form>
                 </div>
               )}
-            {!showAddEducation ? (
-  <button type="button" onClick={() => { setEducationFormData({ degree: '', university_name: '', year_awarded: '', coursework_details: '' }); setSelectedEducationIndex(null); setShowAddEducation(true); }}
-    style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem' }}>
-    + Add New Education
-  </button>
-      ) : (
-  <div>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-      <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Education</h3>
-      <button type="button" onClick={() => setShowAddEducation(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-    </div>
-    <form onSubmit={async (e) => { await handleEducationSubmit(e); setShowAddEducation(false); }} style={{ maxWidth: '600px' }}>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Degree <span style={{ color: 'red' }}>*</span></label><input type="text" name="degree" value={educationFormData.degree} onChange={handleEducationInputChange} style={inputStyle} required /></div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>University Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="university_name" value={educationFormData.university_name} onChange={handleEducationInputChange} style={inputStyle} required /></div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Year Awarded <span style={{ color: 'red' }}>*</span></label><input type="number" name="year_awarded" value={educationFormData.year_awarded} onChange={handleEducationInputChange} style={inputStyle} min="1950" max="2050" required /></div>
-      <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Coursework Details</label><textarea name="coursework_details" value={educationFormData.coursework_details} onChange={handleEducationInputChange} style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }} /></div>
-      <button type="submit" style={buttonStyle}>Save Education</button>
-    </form>
-  </div>
-       )}
+ 
             </div>
           )}
 
@@ -1463,6 +1517,28 @@ useEffect(() => {
                 { label: 'Joining Date', key: 'party_client_joining_date' },
             ]}
               />
+
+        {!showAddClient ? (
+          <button type="button" onClick={() => { setClientFormData({ client_name: '', party_client_joining_date: '' }); setSelectedClientIndex(null); setShowAddClient(true); }}
+            style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
+            + Add New Client
+         </button>
+        ) : (
+      <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+       <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Client</h3>
+        <button type="button" onClick={() => setShowAddClient(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
+      </div>
+      <form onSubmit={async (e) => { await handleClientSubmit(e); setShowAddClient(false); }} style={{ maxWidth: '600px' }}>
+        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="client_name" value={clientFormData.client_name} onChange={handleClientInputChange} style={inputStyle} required /></div>
+        <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Party Client Joining Date <span style={{ color: 'red' }}>*</span></label><input type="date" name="party_client_joining_date" value={clientFormData.party_client_joining_date} onChange={handleClientInputChange} style={inputStyle} required /></div>
+        <button type="submit" style={buttonStyle}>Save Client</button>
+      </form>
+    </div>
+    )}
+
+
               {selectedClientIndex !== null && (
                 <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -1476,25 +1552,7 @@ useEffect(() => {
                   </form>
                 </div>
               )}
-             {!showAddClient ? (
-          <button type="button" onClick={() => { setClientFormData({ client_name: '', party_client_joining_date: '' }); setSelectedClientIndex(null); setShowAddClient(true); }}
-         style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem' }}>
-    + Add New Client
-  </button>
-) : (
-  <div>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-      <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Client</h3>
-      <button type="button" onClick={() => setShowAddClient(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-    </div>
-    <form onSubmit={async (e) => { await handleClientSubmit(e); setShowAddClient(false); }} style={{ maxWidth: '600px' }}>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="client_name" value={clientFormData.client_name} onChange={handleClientInputChange} style={inputStyle} required /></div>
-      <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Party Client Joining Date <span style={{ color: 'red' }}>*</span></label><input type="date" name="party_client_joining_date" value={clientFormData.party_client_joining_date} onChange={handleClientInputChange} style={inputStyle} required /></div>
-      <button type="submit" style={buttonStyle}>Save Client</button>
-    </form>
-  </div>
-)}
+          
             </div>
           )}
 
@@ -1520,28 +1578,11 @@ useEffect(() => {
                  { label: 'To Date', key: 'to_date' },
                ]}
               />
-              {selectedExperienceIndex !== null && (
-                <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Experience {selectedExperienceIndex + 1} Details</h3>
-                    <button type="button" onClick={() => setEditableForms(prev => ({ ...prev, experience: !prev.experience }))} style={{ padding: '0.4rem 1rem', backgroundColor: editableForms.experience ? '#dc3545' : '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>{editableForms.experience ? '✕ Cancel' : '✏️ Edit'}</button>
-                  </div>
-                  <form onSubmit={handleUpdateExperience} style={{ maxWidth: '600px' }}>
-                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Employer Name</label><input type="text" name="employer_name" value={experienceFormData.employer_name} onChange={handleExperienceInputChange} style={!editableForms.experience ? readOnlyStyle : inputStyle} disabled={!editableForms.experience} /></div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                      <div><label style={labelStyle}>From Date</label><input type="date" name="from_date" value={experienceFormData.from_date} onChange={handleExperienceInputChange} style={!editableForms.experience ? readOnlyStyle : inputStyle} disabled={!editableForms.experience} /></div>
-                      <div><label style={labelStyle}>To Date</label><input type="date" name="to_date" value={experienceFormData.to_date} onChange={handleExperienceInputChange} style={!editableForms.experience ? readOnlyStyle : inputStyle} disabled={!editableForms.experience} /></div>
-                    </div>
-                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Designation</label><input type="text" name="designation" value={experienceFormData.designation} onChange={handleExperienceInputChange} style={!editableForms.experience ? readOnlyStyle : inputStyle} disabled={!editableForms.experience} /></div>
-                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Role</label><input type="text" name="role" value={experienceFormData.role} onChange={handleExperienceInputChange} style={!editableForms.experience ? readOnlyStyle : inputStyle} disabled={!editableForms.experience} /></div>
-                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Job Duties</label><textarea name="job_duties" value={experienceFormData.job_duties} onChange={handleExperienceInputChange} style={!editableForms.experience ? readOnlyStyle : { ...inputStyle, minHeight: '100px', resize: 'vertical' }} disabled={!editableForms.experience} /></div>
-                    {editableForms.experience && <button type="submit" style={buttonStyle}>Update Experience</button>}
-                  </form>
-                </div>
-              )}
-            {!showAddExperience ? (
+
+
+             {!showAddExperience ? (
               <button type="button" onClick={() => { setExperienceFormData({ employer_name: '', from_date: '', to_date: '', designation: '', role: '', job_duties: '' }); setSelectedExperienceIndex(null); setShowAddExperience(true); }}
-             style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem' }}>
+             style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
              + Add New Experience
            </button>
           ) : (
@@ -1564,6 +1605,28 @@ useEffect(() => {
           </form>
           </div>
          )}
+
+
+              {selectedExperienceIndex !== null && (
+                <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Experience {selectedExperienceIndex + 1} Details</h3>
+                    <button type="button" onClick={() => setEditableForms(prev => ({ ...prev, experience: !prev.experience }))} style={{ padding: '0.4rem 1rem', backgroundColor: editableForms.experience ? '#dc3545' : '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>{editableForms.experience ? '✕ Cancel' : '✏️ Edit'}</button>
+                  </div>
+                  <form onSubmit={handleUpdateExperience} style={{ maxWidth: '600px' }}>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Employer Name</label><input type="text" name="employer_name" value={experienceFormData.employer_name} onChange={handleExperienceInputChange} style={!editableForms.experience ? readOnlyStyle : inputStyle} disabled={!editableForms.experience} /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>From Date</label><input type="date" name="from_date" value={experienceFormData.from_date} onChange={handleExperienceInputChange} style={!editableForms.experience ? readOnlyStyle : inputStyle} disabled={!editableForms.experience} /></div>
+                      <div><label style={labelStyle}>To Date</label><input type="date" name="to_date" value={experienceFormData.to_date} onChange={handleExperienceInputChange} style={!editableForms.experience ? readOnlyStyle : inputStyle} disabled={!editableForms.experience} /></div>
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Designation</label><input type="text" name="designation" value={experienceFormData.designation} onChange={handleExperienceInputChange} style={!editableForms.experience ? readOnlyStyle : inputStyle} disabled={!editableForms.experience} /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Role</label><input type="text" name="role" value={experienceFormData.role} onChange={handleExperienceInputChange} style={!editableForms.experience ? readOnlyStyle : inputStyle} disabled={!editableForms.experience} /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Job Duties</label><textarea name="job_duties" value={experienceFormData.job_duties} onChange={handleExperienceInputChange} style={!editableForms.experience ? readOnlyStyle : { ...inputStyle, minHeight: '100px', resize: 'vertical' }} disabled={!editableForms.experience} /></div>
+                    {editableForms.experience && <button type="submit" style={buttonStyle}>Update Experience</button>}
+                  </form>
+                </div>
+              )}
+           
             </div>
           )}
 
@@ -1590,6 +1653,41 @@ useEffect(() => {
               { label: 'Zip Code', key: 'zipcode' },
             ]}
               />
+
+            
+     {!showAddAddress ? (
+       <button type="button" onClick={() => { setAddressFormData({ client_id: addressFormData.client_id, address_type: '', address_line_1: '', address_line_2: '', address_line_3: '', city: '', state: '', zipcode: '', country: '' }); setSelectedAddressIndex(null); setShowAddAddress(true); }}
+        style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom: '10px' }}>
+         + Add New Address
+       </button>
+         ) : (
+        <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+         <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Address</h3>
+          <button type="button" onClick={() => setShowAddAddress(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
+        </div>
+         <form onSubmit={async (e) => { await handleAddressSubmit(e); setShowAddAddress(false); }} style={{ maxWidth: '600px' }}>
+        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client ID</label><input type="text" value={addressFormData.client_id} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Type</label><select name="address_type" value={addressFormData.address_type} onChange={handleAddressInputChange} style={inputStyle}><option value="">Select</option><option value="Home">Home</option><option value="Work">Work</option><option value="Mailing">Mailing</option></select></div>
+        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 1 <span style={{ color: 'red' }}>*</span></label><input type="text" name="address_line_1" value={addressFormData.address_line_1} onChange={handleAddressInputChange} style={inputStyle} required /></div>
+        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 2</label><input type="text" name="address_line_2" value={addressFormData.address_line_2} onChange={handleAddressInputChange} style={inputStyle} /></div>
+        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 3</label><input type="text" name="address_line_3" value={addressFormData.address_line_3} onChange={handleAddressInputChange} style={inputStyle} /></div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+        <div><label style={labelStyle}>City <span style={{ color: 'red' }}>*</span></label><input type="text" name="city" value={addressFormData.city} onChange={handleAddressInputChange} style={inputStyle} required /></div>
+        <div><label style={labelStyle}>State <span style={{ color: 'red' }}>*</span></label><input type="text" name="state" value={addressFormData.state} onChange={handleAddressInputChange} style={inputStyle} required /></div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div><label style={labelStyle}>Zip Code <span style={{ color: 'red' }}>*</span></label><input type="text" name="zipcode" value={addressFormData.zipcode} onChange={handleAddressInputChange} style={inputStyle} required /></div>
+        <div><label style={labelStyle}>Country</label><input type="text" name="country" value={addressFormData.country} onChange={handleAddressInputChange} style={inputStyle} /></div>
+       </div>
+      <button type="submit" style={buttonStyle}>Save Address</button>
+      </form>
+     </div>
+    )}
+
+
+
               {selectedAddressIndex !== null && (
                 <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -1614,36 +1712,7 @@ useEffect(() => {
                   </form>
                 </div>
               )}
-            {!showAddAddress ? (
-            <button type="button" onClick={() => { setAddressFormData({ client_id: addressFormData.client_id, address_type: '', address_line_1: '', address_line_2: '', address_line_3: '', city: '', state: '', zipcode: '', country: '' }); setSelectedAddressIndex(null); setShowAddAddress(true); }}
-             style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem' }}>
-           + Add New Address
-         </button>
-         ) : (
-           <div>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-           <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Address</h3>
-           <button type="button" onClick={() => setShowAddAddress(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-          </div>
-         <form onSubmit={async (e) => { await handleAddressSubmit(e); setShowAddAddress(false); }} style={{ maxWidth: '600px' }}>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client ID</label><input type="text" value={addressFormData.client_id} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Type</label><select name="address_type" value={addressFormData.address_type} onChange={handleAddressInputChange} style={inputStyle}><option value="">Select</option><option value="Home">Home</option><option value="Work">Work</option><option value="Mailing">Mailing</option></select></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 1 <span style={{ color: 'red' }}>*</span></label><input type="text" name="address_line_1" value={addressFormData.address_line_1} onChange={handleAddressInputChange} style={inputStyle} required /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 2</label><input type="text" name="address_line_2" value={addressFormData.address_line_2} onChange={handleAddressInputChange} style={inputStyle} /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 3</label><input type="text" name="address_line_3" value={addressFormData.address_line_3} onChange={handleAddressInputChange} style={inputStyle} /></div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>City <span style={{ color: 'red' }}>*</span></label><input type="text" name="city" value={addressFormData.city} onChange={handleAddressInputChange} style={inputStyle} required /></div>
-        <div><label style={labelStyle}>State <span style={{ color: 'red' }}>*</span></label><input type="text" name="state" value={addressFormData.state} onChange={handleAddressInputChange} style={inputStyle} required /></div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div><label style={labelStyle}>Zip Code <span style={{ color: 'red' }}>*</span></label><input type="text" name="zipcode" value={addressFormData.zipcode} onChange={handleAddressInputChange} style={inputStyle} required /></div>
-        <div><label style={labelStyle}>Country</label><input type="text" name="country" value={addressFormData.country} onChange={handleAddressInputChange} style={inputStyle} /></div>
-       </div>
-      <button type="submit" style={buttonStyle}>Save Address</button>
-      </form>
-     </div>
-        )}
+          
             </div>
           )}
 
@@ -1670,6 +1739,48 @@ useEffect(() => {
                { label: 'Expiration Date', key: 'passport_expiration_date' },
              ]}
               />
+
+         {!showAddImmigration ? (
+             <button type="button" onClick={() => { setImmigrationFormData({ current_status: '', status_requested: '', current_status_expiration: '', consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '', i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '', passport_expiration_date: '', passport_place_of_issue: '' }); setSelectedImmigrationIndex(null); setShowAddImmigration(true); }}
+             style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
+              + Add New Immigration
+            </button>
+            ) : (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Immigration</h3>
+              <button type="button" onClick={() => setShowAddImmigration(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
+           </div>
+          <form onSubmit={async (e) => { await handleImmigrationSubmit(e); setShowAddImmigration(false); }} style={{ maxWidth: '800px' }}>
+           <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+           <div><label style={labelStyle}>Current Status <span style={{ color: 'red' }}>*</span></label><input type="text" name="current_status" value={immigrationFormData.current_status} onChange={handleImmigrationInputChange} style={inputStyle} required /></div>
+           <div><label style={labelStyle}>Status Requested</label><input type="text" name="status_requested" value={immigrationFormData.status_requested} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+         </div>
+       <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Status Expiration</label><input type="date" name="current_status_expiration" value={immigrationFormData.current_status_expiration} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+        <div><label style={labelStyle}>Consulate City</label><input type="text" name="consulate_city" value={immigrationFormData.consulate_city} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+        <div><label style={labelStyle}>Consulate Country</label><input type="text" name="consulate_country" value={immigrationFormData.consulate_country} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+      </div>
+      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>I-94 Number</label><input type="text" name="i94_number" value={immigrationFormData.i94_number} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+        <div><label style={labelStyle}>I-94 Issue Date</label><input type="date" name="i94_issue_date" value={immigrationFormData.i94_issue_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+        <div><label style={labelStyle}>I-94 Expiration</label><input type="date" name="i94_expiration" value={immigrationFormData.i94_expiration} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+      </div>
+      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Last Arrival Date</label><input type="date" name="last_arrival_date" value={immigrationFormData.last_arrival_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Passport Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="passport_number" value={immigrationFormData.passport_number} onChange={handleImmigrationInputChange} style={inputStyle} required /></div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+        <div><label style={labelStyle}>Passport Issue Date</label><input type="date" name="passport_issue_date" value={immigrationFormData.passport_issue_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+        <div><label style={labelStyle}>Passport Expiration Date</label><input type="date" name="passport_expiration_date" value={immigrationFormData.passport_expiration_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+      </div>
+      <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Passport Place of Issue</label><input type="text" name="passport_place_of_issue" value={immigrationFormData.passport_place_of_issue} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+      <button type="submit" style={buttonStyle}>Save Immigration</button>
+     </form>
+     </div>
+    )}
+
+
+
               {selectedImmigrationIndex !== null && (
                 <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -1702,44 +1813,7 @@ useEffect(() => {
                   </form>
                 </div>
               )}
-              {!showAddImmigration ? (
-             <button type="button" onClick={() => { setImmigrationFormData({ current_status: '', status_requested: '', current_status_expiration: '', consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '', i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '', passport_expiration_date: '', passport_place_of_issue: '' }); setSelectedImmigrationIndex(null); setShowAddImmigration(true); }}
-          style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem' }}>
-       + Add New Immigration
-       </button>
-          ) : (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Immigration</h3>
-           <button type="button" onClick={() => setShowAddImmigration(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-        </div>
-       <form onSubmit={async (e) => { await handleImmigrationSubmit(e); setShowAddImmigration(false); }} style={{ maxWidth: '800px' }}>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>Current Status <span style={{ color: 'red' }}>*</span></label><input type="text" name="current_status" value={immigrationFormData.current_status} onChange={handleImmigrationInputChange} style={inputStyle} required /></div>
-        <div><label style={labelStyle}>Status Requested</label><input type="text" name="status_requested" value={immigrationFormData.status_requested} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      </div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Status Expiration</label><input type="date" name="current_status_expiration" value={immigrationFormData.current_status_expiration} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>Consulate City</label><input type="text" name="consulate_city" value={immigrationFormData.consulate_city} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-        <div><label style={labelStyle}>Consulate Country</label><input type="text" name="consulate_country" value={immigrationFormData.consulate_country} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      </div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>I-94 Number</label><input type="text" name="i94_number" value={immigrationFormData.i94_number} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>I-94 Issue Date</label><input type="date" name="i94_issue_date" value={immigrationFormData.i94_issue_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-        <div><label style={labelStyle}>I-94 Expiration</label><input type="date" name="i94_expiration" value={immigrationFormData.i94_expiration} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      </div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Last Arrival Date</label><input type="date" name="last_arrival_date" value={immigrationFormData.last_arrival_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Passport Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="passport_number" value={immigrationFormData.passport_number} onChange={handleImmigrationInputChange} style={inputStyle} required /></div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>Passport Issue Date</label><input type="date" name="passport_issue_date" value={immigrationFormData.passport_issue_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-        <div><label style={labelStyle}>Passport Expiration Date</label><input type="date" name="passport_expiration_date" value={immigrationFormData.passport_expiration_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      </div>
-      <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Passport Place of Issue</label><input type="text" name="passport_place_of_issue" value={immigrationFormData.passport_place_of_issue} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      <button type="submit" style={buttonStyle}>Save Immigration</button>
-    </form>
-  </div>
-)}
+              
             </div>
           )}
 
@@ -1766,6 +1840,34 @@ useEffect(() => {
                  { label: 'Receipt Number', key: 'receipt_number' },
               ]}
               />
+
+
+            {!showAddVisa ? (
+             <button type="button" onClick={() => { setVisaHistoryFormData({ visa_type: '', date_of_arrival: '', date_of_departure: '', receipt_number: '' }); setSelectedVisaIndex(null); setShowAddVisa(true); }}
+               style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
+               + Add New Visa History
+             </button>
+           ) : (
+           <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Visa History</h3>
+           <button type="button" onClick={() => setShowAddVisa(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
+          </div>
+         <form onSubmit={async (e) => { await handleVisaHistorySubmit(e); setShowAddVisa(false); }} style={{ maxWidth: '600px' }}>
+          <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+           <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Visa Type <span style={{ color: 'red' }}>*</span></label><input type="text" name="visa_type" value={visaHistoryFormData.visa_type} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div><label style={labelStyle}>Date of Arrival <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_arrival" value={visaHistoryFormData.date_of_arrival} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
+            <div><label style={labelStyle}>Date of Departure</label><input type="date" name="date_of_departure" value={visaHistoryFormData.date_of_departure} onChange={handleVisaHistoryInputChange} style={inputStyle} /></div>
+           </div>
+           <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Receipt Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="receipt_number" value={visaHistoryFormData.receipt_number} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
+            <button type="submit" style={buttonStyle}>Save Visa History</button>
+         </form>
+       </div>
+       )}
+
+
+
               {selectedVisaIndex !== null && (
                 <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -1783,29 +1885,7 @@ useEffect(() => {
                   </form>
                 </div>
               )}
-            {!showAddVisa ? (
-          <button type="button" onClick={() => { setVisaHistoryFormData({ visa_type: '', date_of_arrival: '', date_of_departure: '', receipt_number: '' }); setSelectedVisaIndex(null); setShowAddVisa(true); }}
-           style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem' }}>
-           + Add New Visa History
-          </button>
-         ) : (
-        <div>
-         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Visa History</h3>
-           <button type="button" onClick={() => setShowAddVisa(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-        </div>
-        <form onSubmit={async (e) => { await handleVisaHistorySubmit(e); setShowAddVisa(false); }} style={{ maxWidth: '600px' }}>
-          <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-           <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Visa Type <span style={{ color: 'red' }}>*</span></label><input type="text" name="visa_type" value={visaHistoryFormData.visa_type} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-            <div><label style={labelStyle}>Date of Arrival <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_arrival" value={visaHistoryFormData.date_of_arrival} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
-            <div><label style={labelStyle}>Date of Departure</label><input type="date" name="date_of_departure" value={visaHistoryFormData.date_of_departure} onChange={handleVisaHistoryInputChange} style={inputStyle} /></div>
-           </div>
-           <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Receipt Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="receipt_number" value={visaHistoryFormData.receipt_number} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
-            <button type="submit" style={buttonStyle}>Save Visa History</button>
-        </form>
-  </div>
-)}
+            
             </div>
           )}
 
@@ -1835,6 +1915,44 @@ useEffect(() => {
                      { label: 'Date of Birth', key: 'date_of_birth' },
                    ]}
                   />
+
+
+                 {!showAddDependent ? (
+                  <button type="button" onClick={() => { setDependentFormData({ party_type: 'Dependent', party_relationship: '', first_name: '', middle_name: '', last_name: '', date_of_birth: '', ssn: '', party_joining_date: '', city_of_birth: '', country_of_birth: '', country_of_citizenship: '' }); setSelectedDependentIndex(null); setShowAddDependent(true); }}
+                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
+                  + Add New Dependent
+                 </button>
+                ) : (
+                <div>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                 <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Dependent</h3>
+                <button type="button" onClick={() => setShowAddDependent(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
+               </div>
+             <form onSubmit={async (e) => { await handleDependentSubmit(e); setShowAddDependent(false); }} style={{ maxWidth: '800px' }}>
+              <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party Type</label><input type="text" value="Dependent" style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+              <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Relationship <span style={{ color: 'red' }}>*</span></label><input type="text" name="party_relationship" value={dependentFormData.party_relationship} onChange={handleDependentInputChange} style={inputStyle} placeholder="e.g. daughter, son, spouse" required /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div><label style={labelStyle}>First Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="first_name" value={dependentFormData.first_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
+              <div><label style={labelStyle}>Middle Name</label><input type="text" name="middle_name" value={dependentFormData.middle_name} onChange={handleDependentInputChange} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Last Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="last_name" value={dependentFormData.last_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
+             </div>
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+          <div><label style={labelStyle}>Date of Birth <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_birth" value={dependentFormData.date_of_birth} onChange={handleDependentInputChange} style={inputStyle} required /></div>
+          <div><label style={labelStyle}>SSN <span style={{ color: 'red' }}>*</span></label><input type="text" name="ssn" value={dependentFormData.ssn} onChange={handleDependentInputChange} style={inputStyle} placeholder="XXX-XX-XXXX" maxLength={11} required /></div>
+        </div>
+       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+        <div><label style={labelStyle}>City of Birth</label><input type="text" name="city_of_birth" value={dependentFormData.city_of_birth} onChange={handleDependentInputChange} style={inputStyle} /></div>
+        <div><label style={labelStyle}>Country of Birth</label><select name="country_of_birth" value={dependentFormData.country_of_birth} onChange={handleDependentInputChange} style={inputStyle}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
+       </div>
+        <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Country of Citizenship</label><select name="country_of_citizenship" value={dependentFormData.country_of_citizenship} onChange={handleDependentInputChange} style={inputStyle}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
+        <button type="submit" style={buttonStyle}>Save Dependent</button>
+      </form>
+     </div>
+    )}
+
+
+
+
                   {selectedDependentIndex !== null && (
                     <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -1865,38 +1983,7 @@ useEffect(() => {
                       </form>
                     </div>
                   )}
-                 {!showAddDependent ? (
-  <button type="button" onClick={() => { setDependentFormData({ party_type: 'Dependent', party_relationship: '', first_name: '', middle_name: '', last_name: '', date_of_birth: '', ssn: '', party_joining_date: '', city_of_birth: '', country_of_birth: '', country_of_citizenship: '' }); setSelectedDependentIndex(null); setShowAddDependent(true); }}
-    style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem' }}>
-    + Add New Dependent
-  </button>
-) : (
-  <div>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-      <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Dependent</h3>
-      <button type="button" onClick={() => setShowAddDependent(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-    </div>
-    <form onSubmit={async (e) => { await handleDependentSubmit(e); setShowAddDependent(false); }} style={{ maxWidth: '800px' }}>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party Type</label><input type="text" value="Dependent" style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Relationship <span style={{ color: 'red' }}>*</span></label><input type="text" name="party_relationship" value={dependentFormData.party_relationship} onChange={handleDependentInputChange} style={inputStyle} placeholder="e.g. daughter, son, spouse" required /></div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>First Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="first_name" value={dependentFormData.first_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
-        <div><label style={labelStyle}>Middle Name</label><input type="text" name="middle_name" value={dependentFormData.middle_name} onChange={handleDependentInputChange} style={inputStyle} /></div>
-        <div><label style={labelStyle}>Last Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="last_name" value={dependentFormData.last_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>Date of Birth <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_birth" value={dependentFormData.date_of_birth} onChange={handleDependentInputChange} style={inputStyle} required /></div>
-        <div><label style={labelStyle}>SSN <span style={{ color: 'red' }}>*</span></label><input type="text" name="ssn" value={dependentFormData.ssn} onChange={handleDependentInputChange} style={inputStyle} placeholder="XXX-XX-XXXX" maxLength={11} required /></div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>City of Birth</label><input type="text" name="city_of_birth" value={dependentFormData.city_of_birth} onChange={handleDependentInputChange} style={inputStyle} /></div>
-        <div><label style={labelStyle}>Country of Birth</label><select name="country_of_birth" value={dependentFormData.country_of_birth} onChange={handleDependentInputChange} style={inputStyle}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
-      </div>
-      <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Country of Citizenship</label><select name="country_of_citizenship" value={dependentFormData.country_of_citizenship} onChange={handleDependentInputChange} style={inputStyle}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
-      <button type="submit" style={buttonStyle}>Save Dependent</button>
-    </form>
-  </div>
-)}
+ 
                 </div>
               ) : (
                 <div>

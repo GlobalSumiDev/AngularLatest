@@ -7,7 +7,7 @@
             <div class="row justify-content-center">
               <h2 class="text-uppercase text-center mb-5">Create an account</h2>
               <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
-
+              
                 <form class="mx-1 mx-md-4" [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
 
                   <div class="d-flex flex-row align-items-center mb-4">
@@ -21,27 +21,6 @@
                     </div>
                   </div>
 
-                    <div class="d-flex flex-row align-items-center mb-4">
-                    <i class="fas fa-user fa-lg me-3 fa-fw"></i>
-                    <div data-mdb-input-init class="form-outline flex-fill mb-0">
-                      <label class="form-label" for="form3Example1c">Role</label>
-                      <input type="text" id="form3Example1c" class="form-control" formControlName="role" />
-                      <div *ngIf="submitted && registrationForm.get('role')?.errors" class="invalid-feedback">
-                        <div *ngIf="registrationForm.get('role')?.errors?.['required']">Role is required</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="d-flex flex-row align-items-center mb-4">
-                    <i class="fas fa-user fa-lg me-3 fa-fw"></i>
-                    <div data-mdb-input-init class="form-outline flex-fill mb-0">
-                      <label class="form-label" for="form3Example1c">Status</label>
-                      <input type="text" id="form3Example1c" class="form-control" formControlName="status" />
-                      <div *ngIf="submitted && registrationForm.get('status')?.errors" class="invalid-feedback">
-                        <div *ngIf="registrationForm.get('role')?.errors?.['required']">Status is required</div>
-                      </div>
-                    </div>
-                  </div>
                 
 
                  
@@ -61,10 +40,30 @@
 
                   <div class="d-flex flex-row align-items-center mb-4">
                     <i class="fas fa-lock fa-lg me-3 fa-fw"></i>
-                    <div data-mdb-input-init class="form-outline flex-fill mb-0">
+                    <div data-mdb-input-init class="form-outline flex-fill mb-0"style="position: relative;">
                       <label class="form-label" for="form3Example4c">Password</label>
-                      <input type="password" id="form3Example4c" class="form-control" formControlName="password" />
-                      <div *ngIf="submitted && registrationForm.get('password')?.errors" class="invalid-feedback">
+                     <!-- <input type="password" id="form3Example4c" class="form-control" formControlName="password" />-->
+                      <input [type] ="showPassword ? 'text' : 'password'"
+                      id="form3Example4c"
+                      class="form-control pe-5 "
+                      formControlName="password"/>
+                      <i
+                       
+                      class="fas"
+                      [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"
+                      
+                      (click)="togglePassword()"
+                      style="
+                      position: absolute;
+                      right:38px;
+                      top: 45px;
+                      z-index:10;
+                      color: #6c757d;
+                      cursor:pointer;
+                      ">
+
+                      </i>
+                     <div *ngIf="submitted && registrationForm.get('password')?.errors" class="invalid-feedback">
                         <div *ngIf="registrationForm.get('password')?.errors?.['required']">Password is required</div>
                         <div *ngIf="registrationForm.get('password')?.errors?.['minlength']">Password must be at least 8 characters long</div>
                       </div>
@@ -73,9 +72,27 @@
 
                   <div class="d-flex flex-row align-items-center mb-4">
                     <i class="fas fa-key fa-lg me-3 fa-fw"></i>
-                    <div data-mdb-input-init class="form-outline flex-fill mb-0">
+                    <div data-mdb-input-init class="form-outline flex-fill mb-0"style="position: relative;">
                       <label class="form-label" for="form3Example4cd">Confirm password</label>
-                      <input type="password" id="form3Example4cd" class="form-control" formControlName="confirmpassword" />
+                      <input [type] ="showConfirmPassword ? 'text' : 'password'"
+                      id="form3Example4c"
+                      class="form-control pe-5 "
+                      formControlName="confirmpassword"/>
+                    <i
+                       
+                      class="fas"
+                      [ngClass]="showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"
+                      (click)="toggleConfirmPassword()"
+                      style="
+                      position: absolute;
+                      right:38px;
+                      top: 45px;
+                      z-index:10;
+                      color: #6c757d;
+                      cursor:pointer;
+                      ">
+                   </i>
+
                       <div *ngIf="submitted && registrationForm.get('confirmpassword')?.errors" class="invalid-feedback">
                         <div *ngIf="registrationForm.get('confirmpassword')?.errors?.['required']">Confirm Password is required</div>
                         <div *ngIf="registrationForm.get('confirmpassword')?.errors?.['mustMatch']">Passwords must match</div>
@@ -95,6 +112,7 @@
                   </div>
 
                    <div class="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
+                  
                     <button type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg">Register</button>
                   </div>
                   <!--<p class="text-center text-muted mt-5 mb-0">Have already an account? <a href="#!" class="fw-bold text-body"><u>Login here</u></a></p>
@@ -104,14 +122,93 @@
 
             <p class="text-center text-muted mt-5 mb-0">
               Have already an account? 
-              <a [routerLink]="['/login']" class="fw-bold text-body">
+              <a [routerLink]="['/login']" class="fw-bold text-body"
+               (click)="goToLogin()"
+               style="color: #155724; font-weight: 700;">
                 <u>Login here</u>
               </a>
             </p>
           </form>
+          
         </div>
-              <div class="col-md-10 col-lg-6 col-xl-7 d-flex align-items-center order-1 order-lg-2">
-                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-registration/draw1.webp" class="img-fluid" alt="Sample image">
+
+        <div *ngIf="registrationSuccess" style="
+           position: fixed;
+           top: 0; left: 0;
+           width: 100%; height: 100%;
+           background-color: rgba(0,0,0,0.5);;
+           z-index: 9998;
+         ">
+       </div>
+
+       <div *ngIf="registrationSuccess" style="
+          background-color: #d4edda;
+          border: 1px solid #c3e6cb;
+          border-radius: 12px;
+          padding: 2rem;
+          text-align: center;
+          max-width: 450px;
+          margin: 2rem auto;
+          
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+          position: fixed;
+          top: 40%;
+          left: 55%;
+          transform: translate(-50%, -50%);
+          z-index: 9999;
+          width: 90%;
+          max-width: 450px;
+          
+       ">
+ 
+      <div style="
+         width: 60px; height: 60px;
+         background-color: #28a745;
+         border-radius: 50%;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         margin: 0 auto 1rem auto;
+         font-size: 1.8rem;
+      ">
+        ✓
+      </div>
+
+ 
+      <h4 style="
+        color: #155724;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+      ">
+       Account Created Successfully!
+      </h4>
+
+ 
+      <p style="
+        color: #155724;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+      ">
+       The user has been created successfully. The account is currently 
+       <strong>inactive</strong>. Please contact the administrator to 
+       activate your account.
+      </p>
+
+
+     <hr style="border-color: #c3e6cb;" />
+
+
+     <p style="margin: 0; color: #155724; font-size: 0.9rem;">
+       Already activated? 
+     <a [routerLink]="['/login']" style="color: #155724; font-weight: 700;">
+       <u>Login here</u>
+      </a>
+     </p>
+    </div>
+    <div class="col-md-10 col-lg-6 col-xl-7 d-flex align-items-center order-1 order-lg-2">
+    <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-registration/draw1.webp" class="img-fluid" alt="Sample image">
               </div>
             </div>
           </div>

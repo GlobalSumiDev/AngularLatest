@@ -88,7 +88,7 @@ const [isUpdatingUser, setIsUpdatingUser] =useState(false);
   fetch(`${config.BASE_URL}/user/me`, { headers })
     .then(r => r.json())
     .then(data => {
-      console.log('logged in user:', data);
+     
       setLoginUserId(data.id);  
     })
     .catch(err => console.error('Error:', err));
@@ -134,8 +134,8 @@ const [isUpdatingUser, setIsUpdatingUser] =useState(false);
         username: newUser.username,
         email: newUser.email,
         password: newUser.password,
-        role: newUser.role,
-        status: newUser.status,
+        role: 'User',
+        status: false,
       };
  
       console.log('Creating user payload:', payload);
@@ -478,13 +478,15 @@ const handleUpdatePassword = async (e) => {
         </div>
 
         {/* Password */}
-        <div style={{ marginBottom: '1rem' }}>
+      <div style={{ marginBottom: '1rem' }}>
           <label style={labelStyle}>Password <span style={{ color: 'red' }}>*</span></label>
           <input type="password" value={newUser.password}
             onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
             style={inputStyle} required disabled={isSubmitting}
             placeholder="Enter password" />
+            
         </div>
+        
 
         {/* Confirm Password */}
         <div style={{ marginBottom: '1rem' }}>
@@ -495,27 +497,7 @@ const handleUpdatePassword = async (e) => {
             placeholder="Confirm password" />
         </div>
 
-        {/* Role */}
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={labelStyle}>Role <span style={{ color: 'red' }}>*</span></label>
-          <select value={newUser.role}
-            onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-            style={inputStyle} required disabled={isSubmitting}>
-            <option value="User">User</option>
-            <option value="Admin">Admin</option>
-          </select>
-        </div>
-
-        {/* Status */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={labelStyle}>Status <span style={{ color: 'red' }}>*</span></label>
-          <select value={newUser.status}
-            onChange={(e) => setNewUser({ ...newUser, status: e.target.value === 'true' })}
-            style={inputStyle} disabled={isSubmitting}>
-            <option value="true">Active</option>
-            <option value="false">Inactive</option>
-          </select>
-        </div>
+      
 
         {/* Buttons */}
         <div style={{ display: 'flex', gap: '1rem' }}>

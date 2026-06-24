@@ -35,6 +35,7 @@ export class LoginComponent implements OnInit {
 
   onLogin(): void {
     this.submitted = true;
+    this.error = null;
     if (this.loginForm.invalid) {
       return;
     }
@@ -49,21 +50,23 @@ export class LoginComponent implements OnInit {
       }
     );*/
        this.authService.login(this.loginForm.value).subscribe(
-  response => {
-    // Store user data for React app to access
+  (response:any) => {
+    
     localStorage.setItem('userEmail', response.email || response.userEmail);
     
     if (response.token) {
       localStorage.setItem('token', response.token);
     }
     
-    // Navigate to React app
     this.router.navigate(['/welcomePage']);
   },
-  error => {
-    console.error('Login failed', error);
-    // Handle error
-  }
+  (error) => {
+    this.error = error?.error?.detail || 'Login failed Please try again';
+    }
 );
   }
+  showPassword = false;
+  togglePassword() {
+  this.showPassword = !this.showPassword;
+}
 }
