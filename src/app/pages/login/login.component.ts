@@ -69,4 +69,10 @@ export class LoginComponent implements OnInit {
   togglePassword() {
   this.showPassword = !this.showPassword;
 }
+forgotPassword(): void {
+  this.toastr.info(
+    'Please contact the Administrator to reset your password.',
+    'Forgot Password'
+  );
+}
 }

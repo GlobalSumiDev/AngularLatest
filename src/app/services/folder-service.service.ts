@@ -10,8 +10,8 @@ import { catchError } from 'rxjs/operators';
 export class FolderService {
   
  
-  
-  private apiUrl = 'https://app.globalsumi.com/api/folders'; 
+    private apiUrl = 'https://globalsumi.com/party-api/folders'; 
+ // private apiUrl = 'https://app.globalsumi.com/api/folders'; 
   //private apiUrl = 'http://localhost:8081/api/folders';
 
   constructor(private http: HttpClient) { }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import config from './config';
+import { FiLogOut } from 'react-icons/fi';
 
 const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
   const [userRole, setUserRole] = useState('');
@@ -13,7 +14,7 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
         if (token) headers['Authorization'] = `Bearer ${token}`;
         const res = await fetch(`${config.BASE_URL}/user/me`, { headers });
         const data = await res.json();
-        
+
         setUserRole(data.role || '');
       } catch (err) {
         console.error('Error fetching user role:', err);
@@ -82,7 +83,7 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
   }, []);
 
   //  Check if admin
-  const isAdmin = userRole.toLowerCase() === 'admin' 
+  const isAdmin = userRole.toLowerCase() === 'admin'
   return (
     <aside className="sidebar">
       <ul className="sidebar-menu">
@@ -90,15 +91,15 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
         {/* ── Show for ALL roles */}
         <li
           className={activePage === 'parties' ? 'active' : ''}
-           onClick={() => alert('Party coming soon!')}>
+          onClick={() => alert('Party coming soon!')}>
           <span className="menu-icon">👥</span><span>Parties</span>
         </li>
 
-        
+
 
         <li
           className={activePage === 'folders' ? 'active' : ''}
-          onClick={onShowFolders}>
+          onClick={() => window.location.href = '/folderPage'}>
           <span className="menu-icon">📁</span><span>Folders</span>
         </li>
 
@@ -110,12 +111,12 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
             <span className="menu-icon">➕</span><span>Add Employees</span>
           </li>
         )}
-        {isAdmin &&(
-        <li
-          className={activePage === 'beneficiary' ? 'active' : ''}
-          onClick={() => alert('Beneficiary coming soon!')}>
-          <span className="menu-icon">👤</span><span>Beneficiary</span>
-        </li>
+        {isAdmin && (
+          <li
+            className={activePage === 'beneficiary' ? 'active' : ''}
+            onClick={() => alert('Beneficiary coming soon!')}>
+            <span className="menu-icon">👤</span><span>Beneficiary</span>
+          </li>
         )
 
         }
@@ -136,6 +137,39 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
           </li>
         )}
 
+        <li
+          onClick={async () => {
+            try {
+              const token = localStorage.getItem('authToken');
+              const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              };
+
+
+              await fetch(`${config.BASE_URL}/user/logout`, {
+                method: 'POST',
+                headers
+              });
+
+            } catch (err) {
+              console.error('Logout API error:', err);
+            } finally {
+
+              localStorage.removeItem('authToken');
+              localStorage.removeItem('refreshToken');
+              localStorage.removeItem('currentUserEmail');
+              localStorage.removeItem('userEmail');
+              localStorage.removeItem('lastCreatedPartyId');
+              localStorage.removeItem('lastCreatedClientId');
+              localStorage.removeItem('registrationSuccess');
+              window.location.href = '/login';
+            }
+          }}
+          style={{ cursor: 'pointer', color: '#dc3545' }}>
+          <FiLogOut style={{ marginRight: '8px', color: '#dc3545' }} />
+          <span>Logout</span>
+        </li>
       </ul>
     </aside>
   );

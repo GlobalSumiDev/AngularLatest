@@ -102,7 +102,7 @@ registerApplication({
 registerApplication({
   name: 'react-app',
   app: () => import('./react-app/react-spa'),
-  activeWhen: ['/welcomePage',`/addEmployee`,`/userPage`],
+  activeWhen: ['/welcomePage',`/addEmployee`,`/userPage`,`/folderPage`],
 });
 
 // Start single-spa

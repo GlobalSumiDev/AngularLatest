@@ -29,14 +29,18 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App';
 import Employee from './employee';
 import User from './User';
+import Folder from './Folder';
 
-const RootComponent =() => {
+
+const RootComponent = () => {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/welcomePage" element={<App />} />
         <Route path="/addEmployee" element={<Employee />} />
-        <Route path="/userPage" element={<User/>} />
+        <Route path="/userPage" element={<User />} />
+        <Route path="/folderPage" element={<Folder />} />
+
       </Routes>
     </BrowserRouter>
   )
@@ -48,7 +52,7 @@ const lifecycles = singleSpaReact({
   rootComponent: RootComponent,
   domElementGetter: () => {
     let element = document.getElementById('react-root');
-    
+
     if (!element) {
       return new Promise((resolve) => {
         const checkElement = setInterval(() => {
@@ -60,15 +64,15 @@ const lifecycles = singleSpaReact({
         }, 50);
       });
     }
-    
+
     return element;
   },
   errorBoundary(err, info, props) {
-    return React.createElement ('div',
-     { style: { padding: '20px', color: 'red' } },
+    return React.createElement('div',
+      { style: { padding: '20px', color: 'red' } },
       React.createElement('h2', null, 'Error loading React app'),
       React.createElement('p', null, err.message)
-    ); 
+    );
   },
 });
 

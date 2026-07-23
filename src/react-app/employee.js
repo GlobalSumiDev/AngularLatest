@@ -8,7 +8,7 @@ import Select from 'react-select';
 const Employee = () => {
   const [activeTab, setActiveTab] = useState('add-employee');
   const [employees, setEmployees] = useState([]);
-  const [lastCreatedPartyId, setLastCreatedPartyId] = useState(null); 
+  const [lastCreatedPartyId, setLastCreatedPartyId] = useState(null);
   const [lastCreatedClientId, setLastCreatedClientId] = useState(null);
   const navigate = useNavigate();
   const COUNTRIES = countryList.getNames();
@@ -18,9 +18,9 @@ const Employee = () => {
   const [showPartyDependentForm, setShowPartyDependentForm] = useState(false);
   const [partyDependentRel, setPartyDependentRel] = useState('');
 
-  const[usernames, setUsernames] = useState([]);
-  const[searchTerm, setSearchTerm] = useState('');
-  const[filteredUsers,setFilteredUsers] = useState([]);
+  const [usernames, setUsernames] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [userOptions, setUserOptions] = useState([]);
 
@@ -58,20 +58,20 @@ const Employee = () => {
   const [selectedVisaIndex, setSelectedVisaIndex] = useState(null);
   const [selectedDependentIndex, setSelectedDependentIndex] = useState(null);
 
- const [showAddBank, setShowAddBank] = useState(false);
-const [showAddContact, setShowAddContact] = useState(false);
-const [showAddEducation, setShowAddEducation] = useState(false);
-const [showAddClient, setShowAddClient] = useState(false);
-const [showAddExperience, setShowAddExperience] = useState(false);
-const [showAddAddress, setShowAddAddress] = useState(false);
-const [showAddImmigration, setShowAddImmigration] = useState(false);
-const [showAddVisa, setShowAddVisa] = useState(false);
-const [showAddDependent, setShowAddDependent] = useState(false);
+  const [showAddBank, setShowAddBank] = useState(false);
+  const [showAddContact, setShowAddContact] = useState(false);
+  const [showAddEducation, setShowAddEducation] = useState(false);
+  const [showAddClient, setShowAddClient] = useState(false);
+  const [showAddExperience, setShowAddExperience] = useState(false);
+  const [showAddAddress, setShowAddAddress] = useState(false);
+  const [showAddImmigration, setShowAddImmigration] = useState(false);
+  const [showAddVisa, setShowAddVisa] = useState(false);
+  const [showAddDependent, setShowAddDependent] = useState(false);
 
   // ── Form Data States
   const [formData, setFormData] = useState({
     party_type: '', party_relationship: '', first_name: '', middle_name: '', last_name: '',
-    date_of_birth: '', ssn: '', assigned_user_id:'',party_joining_date: '', city_of_birth: '',
+    date_of_birth: '', ssn: '', assigned_user_id: '', party_joining_date: '', city_of_birth: '',
     country_of_birth: '', country_of_citizenship: ''
   });
 
@@ -114,7 +114,7 @@ const [showAddDependent, setShowAddDependent] = useState(false);
   const [dependentFormData, setDependentFormData] = useState({
     party_type: 'Dependent', party_relationship: '', first_name: '', middle_name: '',
     last_name: '', date_of_birth: '', ssn: '', party_joining_date: '',
-    city_of_birth: '', country_of_birth: '', country_of_citizenship: ''
+    city_of_birth: '', country_of_birth: '', country_of_citizenship: '', party_1_2_rel: '', assigned_user_id: '',
   });
 
   const [partyDependentData, setPartyDependentData] = useState({
@@ -127,14 +127,14 @@ const [showAddDependent, setShowAddDependent] = useState(false);
   });
 
 
-  const handleUsernameSearch = (e) =>{
+  const handleUsernameSearch = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
 
     const filtered = usernames.filter((u) =>
       u.username.toLowerCase().includes(value.toLowerCase())
-  )
-  setFilteredUsers(filtered)
+    )
+    setFilteredUsers(filtered)
   }
 
   // ── Styles
@@ -155,7 +155,7 @@ const [showAddDependent, setShowAddDependent] = useState(false);
 
   // ── fetchPartyDetails
   const fetchPartyDetails = async (partyId) => {
-   
+
     try {
       const token = localStorage.getItem('authToken');
       console.log('token:', token);
@@ -164,7 +164,7 @@ const [showAddDependent, setShowAddDependent] = useState(false);
         'Authorization': `Bearer ${token}`
       };
 
-      
+
       const allPartiesForFormRes = await fetch(`${config.BASE_URL}/party/get-all-parties`, { headers });
       if (allPartiesForFormRes.ok) {
         const allPartiesForForm = await allPartiesForFormRes.json();
@@ -180,7 +180,7 @@ const [showAddDependent, setShowAddDependent] = useState(false);
             last_name: party.last_name || '',
             date_of_birth: party.date_of_birth || '',
             ssn: party.ssn || '',
-            assigned_user_id:party.assigned_to||'',
+            assigned_user_id: party.assigned_to || '',
             party_joining_date: party.party_joining_date || '',
             city_of_birth: party.city_of_birth || '',
             country_of_birth: party.country_of_birth || '',
@@ -190,266 +190,266 @@ const [showAddDependent, setShowAddDependent] = useState(false);
         }
       }
 
-      
+
 
       // ── Bank — use direct party API
-const bankRes = await fetch(
-  `${config.BASE_URL}/bank/party/${partyId}`,
-  { headers }
-);
+      const bankRes = await fetch(
+        `${config.BASE_URL}/bank/party/${partyId}`,
+        { headers }
+      );
 
-if (bankRes.ok) {
-  const bankData = await bankRes.json();
-  console.log('bank data:', bankData);
- 
-   if (bankData.message || !Array.isArray(bankData) && !bankData.bank_id) {
-    console.log('No bank records found');
-    setBankRecords([]);  
-  }else{
-  const banks = Array.isArray(bankData) ? bankData : [bankData];
-  setBankRecords(banks);
+      if (bankRes.ok) {
+        const bankData = await bankRes.json();
+        console.log('bank data:', bankData);
 
-  //  Auto select first record
-  if (banks.length > 0) {
-    setBankId(banks[0].bank_id);
-    setBankFormData({
-      bank_name: banks[0].bank_name || '',
-      account_number: banks[0].account_number || '',
-      routing_number: banks[0].routing_number || '',
-      bank_status: banks[0].bank_status || '',
-      zip_code: banks[0].zip_code || '',
-    });
-    setSelectedBankIndex(0);
-  }
-}
-} else {
-  console.log('Bank API failed:', bankRes.status);
-}
+        if (bankData.message || !Array.isArray(bankData) && !bankData.bank_id) {
+          console.log('No bank records found');
+          setBankRecords([]);
+        } else {
+          const banks = Array.isArray(bankData) ? bankData : [bankData];
+          setBankRecords(banks);
 
-const contactRes = await fetch(
-  `${config.BASE_URL}/contact/party/${partyId}`,
-  { headers }
-);
+          //  Auto select first record
+          if (banks.length > 0) {
+            setBankId(banks[0].bank_id);
+            setBankFormData({
+              bank_name: banks[0].bank_name || '',
+              account_number: banks[0].account_number || '',
+              routing_number: banks[0].routing_number || '',
+              bank_status: banks[0].bank_status || '',
+              zip_code: banks[0].zip_code || '',
+            });
+            setSelectedBankIndex(0);
+          }
+        }
+      } else {
+        console.log('Bank API failed:', bankRes.status);
+      }
 
-if (contactRes.ok) {
-  const contactData = await contactRes.json();
-  console.log('contact data:', contactData);
-  if (contactData.message || !Array.isArray(contactData) && !contactData.contact_id) {
-    console.log('No contact records found');
-    setContactRecords([]);  
-  }else{
-  const contacts = Array.isArray(contactData) ? contactData : [contactData];
-  setContactRecords(contacts);
- if (contacts.length > 0) {
-    setContactId(contacts[0].contact_id);
-    setContactFormData({
-     phone_number:contacts[0].phone_number || "",
-      email: contacts[0].email || "",
-       });
-    setSelectedContactIndex(0);
-  }
-}
-} else {
-  console.log('Contact API failed:', contactRes.status);
-}
+      const contactRes = await fetch(
+        `${config.BASE_URL}/contact/party/${partyId}`,
+        { headers }
+      );
 
-
- const educationRes = await fetch(
-  `${config.BASE_URL}/education/party/${partyId}`,
-  { headers }
-);
-if (educationRes.ok) {
-  const educationData = await educationRes.json();
-  console.log('education data:', educationData);
-  if (educationData.message || !Array.isArray(educationData) && !educationData.education_id) {
-    console.log('No education records found');
-    setEducationRecords([]);  
-  }else{
-  const educations = Array.isArray(educationData) ? educationData : [educationData];
-  setEducationRecords(educations);
-  if (educations.length > 0) {
-    setEducationId(educations[0].education_id);
-    setEducationFormData({
-     degree: educations[0].degree || '',
-     university_name: educations[0].university_name || '',
-     year_awarded: educations[0].year_awarded || '',
-     coursework_details: educations[0].coursework_details || '',
-      });
-    setSelectedEducationIndex(0);
-  }
-}
-} else {
-  console.log('Education API failed:', educationRes.status);
-}
+      if (contactRes.ok) {
+        const contactData = await contactRes.json();
+        console.log('contact data:', contactData);
+        if (contactData.message || !Array.isArray(contactData) && !contactData.contact_id) {
+          console.log('No contact records found');
+          setContactRecords([]);
+        } else {
+          const contacts = Array.isArray(contactData) ? contactData : [contactData];
+          setContactRecords(contacts);
+          if (contacts.length > 0) {
+            setContactId(contacts[0].contact_id);
+            setContactFormData({
+              phone_number: contacts[0].phone_number || "",
+              email: contacts[0].email || "",
+            });
+            setSelectedContactIndex(0);
+          }
+        }
+      } else {
+        console.log('Contact API failed:', contactRes.status);
+      }
 
 
- const clientRes = await fetch(
-  `${config.BASE_URL}/client/party/${partyId}`,
-  { headers }
-);
+      const educationRes = await fetch(
+        `${config.BASE_URL}/education/party/${partyId}`,
+        { headers }
+      );
+      if (educationRes.ok) {
+        const educationData = await educationRes.json();
+        console.log('education data:', educationData);
+        if (educationData.message || !Array.isArray(educationData) && !educationData.education_id) {
+          console.log('No education records found');
+          setEducationRecords([]);
+        } else {
+          const educations = Array.isArray(educationData) ? educationData : [educationData];
+          setEducationRecords(educations);
+          if (educations.length > 0) {
+            setEducationId(educations[0].education_id);
+            setEducationFormData({
+              degree: educations[0].degree || '',
+              university_name: educations[0].university_name || '',
+              year_awarded: educations[0].year_awarded || '',
+              coursework_details: educations[0].coursework_details || '',
+            });
+            setSelectedEducationIndex(0);
+          }
+        }
+      } else {
+        console.log('Education API failed:', educationRes.status);
+      }
 
-if (clientRes.ok) {
-  const clientData = await clientRes.json();
-  console.log('client data:', clientData);
-    if (clientData.message || !Array.isArray(clientData) && !clientData.client_id) {
-    console.log('No client records found');
-    setClientRecords([]);  
-  }else{
-  const clients = Array.isArray(clientData) ? clientData : [clientData];
-  setClientRecords(clients);
-   if (clients.length > 0) {
-    setClientId(clients[0].client_id);
-    setClientFormData({
-      client_name: clients[0].client_name || "",
-      party_client_joining_date:clients[0].party_client_joining_date || "",
-    });
-    setSelectedClientIndex(0);
-  }
-}
-} else {
-  console.log('Client API failed:', clientRes.status);
-}
 
- const experienceRes = await fetch(
-  `${config.BASE_URL}/experience/party/${partyId}`,
-  { headers }
-);
+      const clientRes = await fetch(
+        `${config.BASE_URL}/client/party/${partyId}`,
+        { headers }
+      );
 
-if (experienceRes.ok) {
-  const experienceData = await experienceRes.json();
-  console.log('experience data:', experienceData);
-  if (experienceData.message || !Array.isArray(experienceData) && !experienceData.experience_id) {
-    console.log('No experience records found');
-    setExperienceRecords([]);  
-  }else{
-  const experiences = Array.isArray(experienceData) ? experienceData : [experienceData];
-  setExperienceRecords(experiences);
-   if (experiences.length > 0) {
-    setExperienceId(experiences[0].experience_id);
-    setExperienceFormData({
-     employer_name: experiences[0].employer_name || '',
-      from_date: experiences[0].from_date || '',
-      to_date: experiences[0].to_date || '',
-      designation: experiences[0].designation || '',
-      role: experiences[0].role || '',
-      job_duties: experiences[0].job_duties || '',
-    });
-    setSelectedExperienceIndex(0);
-  }
-  }
-} else {
-  console.log('Experience API failed:', experienceRes.status);
-  setExperienceRecords([]);
-}
+      if (clientRes.ok) {
+        const clientData = await clientRes.json();
+        console.log('client data:', clientData);
+        if (clientData.message || !Array.isArray(clientData) && !clientData.client_id) {
+          console.log('No client records found');
+          setClientRecords([]);
+        } else {
+          const clients = Array.isArray(clientData) ? clientData : [clientData];
+          setClientRecords(clients);
+          if (clients.length > 0) {
+            setClientId(clients[0].client_id);
+            setClientFormData({
+              client_name: clients[0].client_name || "",
+              party_client_joining_date: clients[0].party_client_joining_date || "",
+            });
+            setSelectedClientIndex(0);
+          }
+        }
+      } else {
+        console.log('Client API failed:', clientRes.status);
+      }
 
-const addressRes = await fetch(
-  `${config.BASE_URL}/address/party/${partyId}`,
-  { headers }
-);
+      const experienceRes = await fetch(
+        `${config.BASE_URL}/experience/party/${partyId}`,
+        { headers }
+      );
 
-if (addressRes.ok) {
-  const addressData = await addressRes.json();
-  console.log('Address data:', addressData);
-  if (addressData.message || !Array.isArray(addressData) && !addressData.address_id) {
-    console.log('No address records found');
-    setAddressRecords([]);  
-  }else{
-  const addresss = Array.isArray(addressData) ? addressData : [addressData];
-  setAddressRecords(addresss);
-   if (addresss.length > 0) {
-    setAddressId(addresss[0].address_id);
-    setAddressFormData({
-    
+      if (experienceRes.ok) {
+        const experienceData = await experienceRes.json();
+        console.log('experience data:', experienceData);
+        if (experienceData.message || !Array.isArray(experienceData) && !experienceData.experience_id) {
+          console.log('No experience records found');
+          setExperienceRecords([]);
+        } else {
+          const experiences = Array.isArray(experienceData) ? experienceData : [experienceData];
+          setExperienceRecords(experiences);
+          if (experiences.length > 0) {
+            setExperienceId(experiences[0].experience_id);
+            setExperienceFormData({
+              employer_name: experiences[0].employer_name || '',
+              from_date: experiences[0].from_date || '',
+              to_date: experiences[0].to_date || '',
+              designation: experiences[0].designation || '',
+              role: experiences[0].role || '',
+              job_duties: experiences[0].job_duties || '',
+            });
+            setSelectedExperienceIndex(0);
+          }
+        }
+      } else {
+        console.log('Experience API failed:', experienceRes.status);
+        setExperienceRecords([]);
+      }
 
-      client_id: addresss[0].client_id || '',
-      address_type: addresss[0].address_type || '',
-      address_line_1: addresss[0].address_line_1 || '',
-      address_line_2: addresss[0].address_line_2 || '',
-      address_line_3: addresss[0].address_line_3 || '',
-      city: addresss[0].city || '',
-      state: addresss[0].state || '',
-      zipcode: addresss[0].zipcode || '',
-      country: addresss[0].country || '',
-    });
-    setSelectedAddressIndex(0);
-  }
-}
-} else {
-  console.log('Address API failed:', addressRes.status);
-}
+      const addressRes = await fetch(
+        `${config.BASE_URL}/address/party/${partyId}`,
+        { headers }
+      );
 
- const immigrationRes = await fetch(
-  `${config.BASE_URL}/immigration/party/${partyId}`,
-  { headers }
-);
+      if (addressRes.ok) {
+        const addressData = await addressRes.json();
+        console.log('Address data:', addressData);
+        if (addressData.message || !Array.isArray(addressData) && !addressData.address_id) {
+          console.log('No address records found');
+          setAddressRecords([]);
+        } else {
+          const addresss = Array.isArray(addressData) ? addressData : [addressData];
+          setAddressRecords(addresss);
+          if (addresss.length > 0) {
+            setAddressId(addresss[0].address_id);
+            setAddressFormData({
 
-if (immigrationRes.ok) {
-  const immigrationData = await immigrationRes.json();
-  console.log('Immigration data:', immigrationData);
-    if (immigrationData.message || !Array.isArray(immigrationData) && !immigrationData.bank_id) {
-    console.log('No immigration records found');
-    setImmigrationRecords([]);  
-  }else{
-  const immigrations = Array.isArray(immigrationData) ? immigrationData : [immigrationData];
-  setImmigrationRecords(immigrations);
- if (immigrations.length > 0) {
-    setImmigrationId(immigrations[0].immigration_id);
-    setImmigrationFormData({
-      current_status: immigrations[0].current_status || '',
-      status_requested: immigrations[0].status_requested || '',
-      current_status_expiration: immigrations[0].current_status_expiration || '',
-      consulate_city: immigrations[0].consulate_city || '',
-      consulate_country: immigrations[0].consulate_country || '',
-      i94_number: immigrations[0].i94_number || '',
-      i94_issue_date: immigrations[0].i94_issue_date || '',
-      i94_expiration: immigrations[0].i94_expiration || '',
-      last_arrival_date: immigrations[0].last_arrival_date || '',
-      passport_number: immigrations[0].passport_number || '',
-      passport_issue_date:immigrations[0].passport_issue_date || '',
-      passport_expiration_date: immigrations[0].passport_expiration_date || '',
-      passport_place_of_issue:immigrations[0].passport_place_of_issue || ''
-       });
-    setSelectedImmigrationIndex(0);
-  }
- }
-} else {
-  console.log('Immigration API failed:', immigrationRes.status);
-}
 
-   const visaHistoryRes = await fetch(
-  `${config.BASE_URL}/visahistory/party/${partyId}`,
-  { headers }
-);
+              client_id: addresss[0].client_id || '',
+              address_type: addresss[0].address_type || '',
+              address_line_1: addresss[0].address_line_1 || '',
+              address_line_2: addresss[0].address_line_2 || '',
+              address_line_3: addresss[0].address_line_3 || '',
+              city: addresss[0].city || '',
+              state: addresss[0].state || '',
+              zipcode: addresss[0].zipcode || '',
+              country: addresss[0].country || '',
+            });
+            setSelectedAddressIndex(0);
+          }
+        }
+      } else {
+        console.log('Address API failed:', addressRes.status);
+      }
 
-if (visaHistoryRes.ok) {
-  const visaHistoryData = await visaHistoryRes.json();
-  if (visaHistoryData.message || !Array.isArray(visaHistoryData) && !visaHistoryData.visaHistory_id) {
-    console.log('No visahistory records found');
-    setVisaHistoryRecords([]);  
-  }else{
-  
-  const visaHistories = Array.isArray(visaHistoryData) ? visaHistoryData : [visaHistoryData];
-  setVisaHistoryRecords(visaHistories);
-   if (visaHistories.length > 0) {
-    setVisaHistoryId(visaHistories[0].visa_id);
-     console.log('visaHistoryId set to:', visaHistories[0].visa_id);
-    setVisaHistoryFormData({
-     
- 
-      visa_type: visaHistories[0].visa_type || '',
-      date_of_arrival: visaHistories[0].date_of_arrival || '',
-      date_of_departure: visaHistories[0].date_of_departure || '',
-      receipt_number: visaHistories[0].receipt_number || '',
+      const immigrationRes = await fetch(
+        `${config.BASE_URL}/immigration/party/${partyId}`,
+        { headers }
+      );
 
-    });
-    setSelectedVisaIndex(0);
-  }
-}
-} else {
-  console.log('Visahistory API failed:', visaHistoryRes.status);
-}
-   
-  
+      if (immigrationRes.ok) {
+        const immigrationData = await immigrationRes.json();
+        console.log('Immigration data:', immigrationData);
+        if (immigrationData.message || !Array.isArray(immigrationData) && !immigrationData.bank_id) {
+          console.log('No immigration records found');
+          setImmigrationRecords([]);
+        } else {
+          const immigrations = Array.isArray(immigrationData) ? immigrationData : [immigrationData];
+          setImmigrationRecords(immigrations);
+          if (immigrations.length > 0) {
+            setImmigrationId(immigrations[0].immigration_id);
+            setImmigrationFormData({
+              current_status: immigrations[0].current_status || '',
+              status_requested: immigrations[0].status_requested || '',
+              current_status_expiration: immigrations[0].current_status_expiration || '',
+              consulate_city: immigrations[0].consulate_city || '',
+              consulate_country: immigrations[0].consulate_country || '',
+              i94_number: immigrations[0].i94_number || '',
+              i94_issue_date: immigrations[0].i94_issue_date || '',
+              i94_expiration: immigrations[0].i94_expiration || '',
+              last_arrival_date: immigrations[0].last_arrival_date || '',
+              passport_number: immigrations[0].passport_number || '',
+              passport_issue_date: immigrations[0].passport_issue_date || '',
+              passport_expiration_date: immigrations[0].passport_expiration_date || '',
+              passport_place_of_issue: immigrations[0].passport_place_of_issue || ''
+            });
+            setSelectedImmigrationIndex(0);
+          }
+        }
+      } else {
+        console.log('Immigration API failed:', immigrationRes.status);
+      }
+
+      const visaHistoryRes = await fetch(
+        `${config.BASE_URL}/visahistory/party/${partyId}`,
+        { headers }
+      );
+
+      if (visaHistoryRes.ok) {
+        const visaHistoryData = await visaHistoryRes.json();
+        if (visaHistoryData.message || !Array.isArray(visaHistoryData) && !visaHistoryData.visaHistory_id) {
+          console.log('No visahistory records found');
+          setVisaHistoryRecords([]);
+        } else {
+
+          const visaHistories = Array.isArray(visaHistoryData) ? visaHistoryData : [visaHistoryData];
+          setVisaHistoryRecords(visaHistories);
+          if (visaHistories.length > 0) {
+            setVisaHistoryId(visaHistories[0].visa_id);
+            console.log('visaHistoryId set to:', visaHistories[0].visa_id);
+            setVisaHistoryFormData({
+
+
+              visa_type: visaHistories[0].visa_type || '',
+              date_of_arrival: visaHistories[0].date_of_arrival || '',
+              date_of_departure: visaHistories[0].date_of_departure || '',
+              receipt_number: visaHistories[0].receipt_number || '',
+
+            });
+            setSelectedVisaIndex(0);
+          }
+        }
+      } else {
+        console.log('Visahistory API failed:', visaHistoryRes.status);
+      }
+
+
 
 
       // ── Dependent — filter ALL records
@@ -466,30 +466,33 @@ if (visaHistoryRes.ok) {
             const allParties = await allPartiesRes.json();
             const dependentDetails = matchingDependents.map(dep => {
               const depParty = allParties.find(p => p.party_id === dep.party_id_2);
-              return { ...dep, ...(depParty || {}) };
+              return {
+                ...dep, ...(depParty || {}),
+                party_relationship: dep.party_1_2_rel || ''
+              };
             });
             setDependentRecords(dependentDetails);
             console.log('Dependent records:', dependentDetails);
 
-           if (dependentDetails.length > 0) {
-        setDependentPartyId(dependentDetails[0].party_id_2 || dependentDetails[0].party_id);
-        setPartyDependentRel(dependentDetails[0].party_1_2_rel || '');
-        setDependentFormData({
-          party_type: dependentDetails[0].party_type || 'Dependent',
-          party_relationship: dependentDetails[0].party_relationship || '',
-          first_name: dependentDetails[0].first_name || '',
-          middle_name: dependentDetails[0].middle_name || '',
-          last_name: dependentDetails[0].last_name || '',
-          date_of_birth: dependentDetails[0].date_of_birth || '',
-          ssn: dependentDetails[0].ssn || '',
-          party_joining_date: dependentDetails[0].party_joining_date || '',
-          city_of_birth: dependentDetails[0].city_of_birth || '',
-          country_of_birth: dependentDetails[0].country_of_birth || '',
-          country_of_citizenship: dependentDetails[0].country_of_citizenship || '',
-        });
-        setSelectedDependentIndex(0);
-      }
-     }
+            if (dependentDetails.length > 0) {
+              setDependentPartyId(dependentDetails[0].party_id_2 || dependentDetails[0].party_id);
+              setPartyDependentRel(dependentDetails[0].party_1_2_rel || '');
+              setDependentFormData({
+                party_type: dependentDetails[0].party_type || 'Dependent',
+                party_relationship: dependentDetails[0].party_relationship || '',
+                first_name: dependentDetails[0].first_name || '',
+                middle_name: dependentDetails[0].middle_name || '',
+                last_name: dependentDetails[0].last_name || '',
+                date_of_birth: dependentDetails[0].date_of_birth || '',
+                ssn: dependentDetails[0].ssn || '',
+                party_joining_date: dependentDetails[0].party_joining_date || '',
+                city_of_birth: dependentDetails[0].city_of_birth || '',
+                country_of_birth: dependentDetails[0].country_of_birth || '',
+                country_of_citizenship: dependentDetails[0].country_of_citizenship || '',
+              });
+              setSelectedDependentIndex(0);
+            }
+          }
         }
       } else {
         console.log('Get-All-Dependent API failed:', allDependentsRes.status);
@@ -694,6 +697,7 @@ if (visaHistoryRes.ok) {
           country_of_birth: dependentFormData.country_of_birth || '',
           country_of_citizenship: dependentFormData.country_of_citizenship || '',
           party_joining_date: null,
+          assigned_user_id: dependentFormData.assigned_user_id || null,
         })
       });
       if (!response.ok) throw new Error(`Failed: ${response.status}`);
@@ -705,61 +709,61 @@ if (visaHistoryRes.ok) {
     }
   };
 
- // ── useEffect
-useEffect(() => {
-  console.log('=== useeffect running==');
+  // ── useEffect
+  useEffect(() => {
+    console.log('=== useeffect running==');
 
-  const token = localStorage.getItem('authToken');
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+    const token = localStorage.getItem('authToken');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch(`${config.BASE_URL}/user/getusers`, { headers });
-      const data = await res.json();
-      const options = data.map((user) => ({
-        value: user.id,
-        label: user.username
-      }));
-      setUserOptions(options);
-      console.log('user options loaded:', options);
-      return options;
-    } catch (err) {
-      console.error('Error fetching users:', err);
-      return [];
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch(`${config.BASE_URL}/user/getusers`, { headers });
+        const data = await res.json();
+        const options = data.map((user) => ({
+          value: user.id,
+          label: user.username
+        }));
+        setUserOptions(options);
+        console.log('user options loaded:', options);
+        return options;
+      } catch (err) {
+        console.error('Error fetching users:', err);
+        return [];
+      }
+    };
+
+    const selectedEmployee = localStorage.getItem('selectedEmployee');
+
+    if (selectedEmployee) {
+      const emp = JSON.parse(selectedEmployee);
+      console.log('editing employee:', emp);
+      setIsEditMode(true);
+      setLastCreatedPartyId(emp.party_id);
+      localStorage.setItem('lastCreatedPartyId', emp.party_id);
+      localStorage.removeItem('selectedEmployee');
+
+      fetchUsers().then(() => {
+        console.log('calling fetchPartyDetails:', emp.party_id);
+        fetchPartyDetails(emp.party_id);
+      });
+
+    } else {
+      fetchUsers();
+      localStorage.removeItem('lastCreatedPartyId');
+      localStorage.removeItem('lastCreatedClientId');
+      setLastCreatedPartyId(null);
+      setLastCreatedClientId(null);
     }
-  };
+  }, []);
 
-  const selectedEmployee = localStorage.getItem('selectedEmployee');
-
-  if (selectedEmployee) {
-    const emp = JSON.parse(selectedEmployee);
-    console.log('editing employee:', emp);
-    setIsEditMode(true);
-    setLastCreatedPartyId(emp.party_id);
-    localStorage.setItem('lastCreatedPartyId', emp.party_id);
-    localStorage.removeItem('selectedEmployee');
-
-    fetchUsers().then(() => {
-      console.log('calling fetchPartyDetails:', emp.party_id);
-      fetchPartyDetails(emp.party_id);
-    });
-
-  } else {
-    fetchUsers();
-    localStorage.removeItem('lastCreatedPartyId');
-    localStorage.removeItem('lastCreatedClientId');
-    setLastCreatedPartyId(null);
-    setLastCreatedClientId(null);
-  }
-}, []);
-
- const handleBack = () => {
+  const handleBack = () => {
     if (window.history.length > 1) navigate(-1);
     else navigate("/");
   };
 
-  const handleHome = () => { window.location.href = '/welcomePage'; };
+
 
   // ── Input Handlers
   const handleInputChange = (e) => { const { name, value } = e.target; setFormData({ ...formData, [name]: value }); };
@@ -781,21 +785,21 @@ useEffect(() => {
     }
     try {
       const token = localStorage.getItem('authToken');
-      const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
+      const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
       console.log('Creating party with data:', JSON.stringify(formData));
-    console.log('token:', token);
+
 
       const response = await fetch(`${config.BASE_URL}/party/create-party`, {
         method: 'POST', headers, body: JSON.stringify(formData)
       });
-     const responseText = await response.text();
+      const responseText = await response.text();
 
       console.log('response status:', response.status);
       console.log('response body:', responseText);
 
-    
+
       if (!response.ok) throw new Error('Failed to save employee');
       const result = JSON.parse(responseText);
       const partyId = result.party_id || result.id || result.partyId;
@@ -815,7 +819,7 @@ useEffect(() => {
     if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
     try {
       const token = localStorage.getItem('authToken');
-      const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
+      const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const response = await fetch(`${config.BASE_URL}/bank/`, {
         method: 'POST', headers, body: JSON.stringify({ ...bankFormData, party_id: partyId })
@@ -837,7 +841,7 @@ useEffect(() => {
     if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
     try {
       const token = localStorage.getItem('authToken');
-      const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
+      const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const response = await fetch(`${config.BASE_URL}/contact/`, {
         method: 'POST', headers, body: JSON.stringify({ ...contactFormData, party_id: partyId })
@@ -859,7 +863,7 @@ useEffect(() => {
     if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
     try {
       const token = localStorage.getItem('authToken');
-      const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
+      const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const response = await fetch(`${config.BASE_URL}/education/`, {
         method: 'POST', headers,
@@ -882,7 +886,7 @@ useEffect(() => {
     if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
     try {
       const token = localStorage.getItem('authToken');
-      const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
+      const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const response = await fetch(`${config.BASE_URL}/client/Create-Client`, {
         method: 'POST', headers, body: JSON.stringify({ ...clientFormData, party_id: partyId })
@@ -911,7 +915,7 @@ useEffect(() => {
     if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
     try {
       const token = localStorage.getItem('authToken');
-      const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
+      const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const response = await fetch(`${config.BASE_URL}/experience/Create-Experience`, {
         method: 'POST', headers, body: JSON.stringify({ ...experienceFormData, party_id: partyId })
@@ -936,7 +940,7 @@ useEffect(() => {
     }
     try {
       const token = localStorage.getItem('authToken');
-      const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
+      const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const addressData = {
         party_id: partyId,
@@ -970,7 +974,7 @@ useEffect(() => {
     if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
     try {
       const token = localStorage.getItem('authToken');
-      const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
+      const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const response = await fetch(`${config.BASE_URL}/immigration/`, {
         method: 'POST', headers, body: JSON.stringify({ ...immigrationFormData, party_id: partyId })
@@ -992,7 +996,7 @@ useEffect(() => {
     if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
     try {
       const token = localStorage.getItem('authToken');
-      const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
+      const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const response = await fetch(`${config.BASE_URL}/visahistory/Create-Visa-History`, {
         method: 'POST', headers, body: JSON.stringify({ ...visaHistoryFormData, party_id: partyId })
@@ -1012,123 +1016,137 @@ useEffect(() => {
     e.preventDefault();
     const mainPartyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
     if (!mainPartyId) { alert('Please add an employee first.'); return; }
+
     try {
       const token = localStorage.getItem('authToken');
-      const headers = { 'Content-Type': 'application/json','Access-Control-Allow-Origin': '*' };
+      const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const dependentPayload = { ...dependentFormData, party_type: 'Dependent', party_joining_date: null };
+
+      // ── Step 1: Create the dependent party
+      const dependentPayload = {
+        party_type: 'Dependent',
+        party_relationship: dependentFormData.party_relationship,
+        first_name: dependentFormData.first_name,
+        middle_name: dependentFormData.middle_name,
+        last_name: dependentFormData.last_name,
+        date_of_birth: dependentFormData.date_of_birth,
+        ssn: dependentFormData.ssn,
+        city_of_birth: dependentFormData.city_of_birth,
+        country_of_birth: dependentFormData.country_of_birth,
+        country_of_citizenship: dependentFormData.country_of_citizenship,
+        party_joining_date: null,
+
+      };
+
       const dependentRes = await fetch(`${config.BASE_URL}/party/create-party`, {
         method: 'POST', headers, body: JSON.stringify(dependentPayload)
       });
+
       if (!dependentRes.ok) throw new Error('Failed to create dependent');
       const dependentResult = await dependentRes.json();
-      console.log('Dependent created:', dependentResult);
-      const allPartiesRes = await fetch(`${config.BASE_URL}/party/get-all-parties`, { headers });
-      if (allPartiesRes.ok) {
-        const allParties = await allPartiesRes.json();
-        const newDependent = Array.isArray(allParties)
-          ? allParties.find(p => p.first_name === dependentFormData.first_name && p.last_name === dependentFormData.last_name && p.ssn === dependentFormData.ssn && p.party_type === 'Dependent')
-          : null;
-        if (newDependent) {
-          setDependentPartyId(newDependent.party_id);
-          setPartyDependentRel(dependentFormData.party_relationship || '');
-          setShowPartyDependentForm(true);
-        } else {
-          alert('Could not find created dependent. Please try again.');
-        }
-      }
-    } catch (error) {
-      alert(`Failed: ${error.message}`);
-    }
-  };
+      const newDependentPartyId = dependentResult.party_id || dependentResult.id;
 
-  const handlePartyDependentSubmit = async (e) => {
-    e.preventDefault();
-    const mainPartyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
-    try {
-      const token = localStorage.getItem('authToken');
-      const headers = { 'Content-Type': 'application/json' ,'Access-Control-Allow-Origin': '*'};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const payload = { party_id_1: mainPartyId, party_id_2: dependentPartyId, party_1_2_rel: partyDependentRel };
-      const res = await fetch(`${config.BASE_URL}/partydependent/Create-party-dependent`, {
-        method: 'POST', headers, body: JSON.stringify(payload)
+      if (!newDependentPartyId) throw new Error('Could not get new dependent party_id from response');
+
+      // ── Step 2: Create the relationship — reuse the SAME value
+      const relationshipPayload = {
+        party_id_1: mainPartyId,
+        party_id_2: newDependentPartyId,
+        party_1_2_rel: dependentFormData.party_relationship,  // ← same value reused
+      };
+
+      const relRes = await fetch(`${config.BASE_URL}/partydependent/Create-party-dependent`, {
+        method: 'POST', headers, body: JSON.stringify(relationshipPayload)
       });
-      if (!res.ok) throw new Error('Failed to create party dependent');
-      const result = await res.json();
-      const newRecord = { ...dependentFormData, party_id_1: mainPartyId, party_id_2: dependentPartyId, party_1_2_rel: partyDependentRel };
+
+      if (!relRes.ok) throw new Error('Failed to create party dependent relationship');
+
+      const newRecord = {
+        ...dependentFormData,
+        party_id_1: mainPartyId,
+        party_id_2: newDependentPartyId,
+        party_1_2_rel: dependentFormData.party_relationship,
+      };
       setDependentRecords(prev => [...prev, newRecord]);
+
       alert('Dependent saved successfully!');
-      setShowPartyDependentForm(false);
-      setDependentPartyId(null);
-      setPartyDependentRel('');
-      setDependentFormData({ party_type: 'Dependent', party_relationship: '', first_name: '', middle_name: '', last_name: '', date_of_birth: '', ssn: '', party_joining_date: '', city_of_birth: '', country_of_birth: '', country_of_citizenship: '' });
+
+      setDependentFormData({
+        party_type: 'Dependent', party_relationship: '', first_name: '', middle_name: '',
+        last_name: '', date_of_birth: '', ssn: '', party_joining_date: '',
+        city_of_birth: '', country_of_birth: '', country_of_citizenship: '',
+      });
+
     } catch (error) {
       alert(`Failed: ${error.message}`);
     }
   };
 
-  const deleteEmployee = (id) => {
-    if (window.confirm('Are you sure?')) setEmployees(employees.filter(emp => emp.id !== id));
-  };
+  
+
+
+
+
 
   // ──  Records List Component
   const RecordsList = ({ records, selectedIndex, onSelect, columns }) => {
-  if (records.length === 0) return null;
-  return (
-    <div style={{ marginBottom: '1.5rem' }}>
-      <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', color: '#495057', borderBottom: '1px solid #dee2e6', paddingBottom: '0.5rem' }}>
-        Added Records ({records.length})
-      </h3>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', borderRadius: '0.5rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#007bff', color: 'white' }}>
-              <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: '600', fontSize: '0.875rem' }}>#</th>
-              {columns.map((col, i) => (
-                <th key={i} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: '600', fontSize: '0.875rem' }}>{col.label}</th>
-              ))}
-              <th style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: '600', fontSize: '0.875rem' }}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {records.map((record, index) => (
-              <tr key={index}
-                style={{
-                  backgroundColor: selectedIndex === index ? '#f0f7ff' : index % 2 === 0 ? '#ffffff' : '#f8f9fa',
-                  borderBottom: '1px solid #dee2e6',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s'
-                }}
-                onClick={() => onSelect(index, record)}
-                
-              >
-                <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#495057' }}>{index + 1}</td>
+    if (records.length === 0) return null;
+    return (
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', color: '#495057', borderBottom: '1px solid #dee2e6', paddingBottom: '0.5rem' }}>
+          Added Records ({records.length})
+        </h3>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', borderRadius: '0.5rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#007bff', color: 'white' }}>
+                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: '600', fontSize: '0.875rem' }}>#</th>
                 {columns.map((col, i) => (
-                  <td key={i} style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#495057' }}>
-                    {record[col.key] || '-'}
-                  </td>
+                  <th key={i} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: '600', fontSize: '0.875rem' }}>{col.label}</th>
                 ))}
-                <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); onSelect(index, record); }}
-                    style={{
-                      padding: '0.3rem 0.75rem',
-                      backgroundColor: selectedIndex === index ? '#0056b3' : '#007bff',
-                      color: 'white', border: 'none', borderRadius: '0.25rem',
-                      cursor: 'pointer', fontSize: '0.8rem'
-                    }}>
-                    {selectedIndex === index ? '✓ Selected' : 'View'}
-                  </button>
-                </td>
+                <th style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: '600', fontSize: '0.875rem' }}>Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {records.map((record, index) => (
+                <tr key={index}
+                  style={{
+                    backgroundColor: selectedIndex === index ? '#f0f7ff' : index % 2 === 0 ? '#ffffff' : '#f8f9fa',
+                    borderBottom: '1px solid #dee2e6',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onClick={() => onSelect(index, record)}
+
+                >
+                  <td style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: '600', color: '#495057' }}>{index + 1}</td>
+                  {columns.map((col, i) => (
+                    <td key={i} style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#495057' }}>
+                      {record[col.key] || '-'}
+                    </td>
+                  ))}
+                  <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); onSelect(index, record); }}
+                      style={{
+                        padding: '0.3rem 0.75rem',
+                        backgroundColor: selectedIndex === index ? '#0056b3' : '#007bff',
+                        color: 'white', border: 'none', borderRadius: '0.25rem',
+                        cursor: 'pointer', fontSize: '0.8rem'
+                      }}>
+                      {selectedIndex === index ? '✓ Selected' : 'View'}
+                    </button>
+                  </td>
+
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <div style={{ width: '100%', padding: '2rem', backgroundColor: '#eee', borderRadius: '8px' }}>
@@ -1136,7 +1154,7 @@ useEffect(() => {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button type="button" onClick={handleBack} style={{ color: 'white', borderRadius: '70px', width: '50px', height: '40px', backgroundColor: "#3dce41", border: 'none' }}>←</button>
-        <button type="button" onClick={handleHome} style={{ color: 'white', backgroundColor: "#3dce41", height: '40px', borderRadius: '70px', border: 'none', padding: '0 16px' }}>Employee Home</button>
+
       </div>
 
       <div style={{ display: 'flex' }}>
@@ -1209,41 +1227,41 @@ useEffect(() => {
                   <div><label style={labelStyle}>Date of Birth <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleInputChange} style={isEditMode && !editableForms.party ? readOnlyStyle : inputStyle} disabled={isEditMode && !editableForms.party} required /></div>
                   <div><label style={labelStyle}>SSN <span style={{ color: 'red' }}>*</span></label><input type="text" name="ssn" value={formData.ssn} onChange={handleInputChange} style={isEditMode && !editableForms.party ? readOnlyStyle : inputStyle} disabled={isEditMode && !editableForms.party} placeholder="XXX-XX-XXXX" maxLength={11} required /></div>
                 </div>
-                 
-               <div style={{ marginBottom: '1.5rem' }}>
-  <label style={labelStyle}>Username <span style={{ color: 'red' }}>*</span></label>
-  {isEditMode && !editableForms.party ? (
-    
-    <input
-      type="text"
-      value={userOptions.find(u => u.value === formData.assigned_user_id)?.label || formData.assigned_user_id || ''}
-      style={readOnlyStyle}
-      readOnly disabled />
-  ) : (
-    //  Searchable dropdown in edit/add mode
-    <Select
-      options={userOptions}
-      placeholder="Search Username..."
-      isSearchable
-      value={userOptions.find(u => u.value === formData.assigned_user_id) || null}
-      onChange={(selectedOption) => {
-        setFormData(prev => ({
-          ...prev,
-          assigned_user_id: selectedOption ? selectedOption.value : ''
-        }));
-      }}
-      styles={{
-        control: (base) => ({
-          ...base,
-          padding: '0.2rem',
-          borderColor: '#ced4da',
-          fontSize: '1rem',
-        })
-         }}
-       />
-       )}
-</div>
-                
+
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={labelStyle}>Username <span style={{ color: 'red' }}>*</span></label>
+                  {isEditMode && !editableForms.party ? (
+
+                    <input
+                      type="text"
+                      value={userOptions.find(u => u.value === formData.assigned_user_id)?.label || formData.assigned_user_id || ''}
+                      style={readOnlyStyle}
+                      readOnly disabled />
+                  ) : (
+                    //  Searchable dropdown in edit/add mode
+                    <Select
+                      options={userOptions}
+                      placeholder="Search Username..."
+                      isSearchable
+                      value={userOptions.find(u => u.value === formData.assigned_user_id) || null}
+                      onChange={(selectedOption) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          assigned_user_id: selectedOption ? selectedOption.value : ''
+                        }));
+                      }}
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          padding: '0.2rem',
+                          borderColor: '#ced4da',
+                          fontSize: '1rem',
+                        })
+                      }}
+                    />
+                  )}
+                </div>
+
                 <div style={{ marginBottom: '1.5rem' }}>
                   <label style={labelStyle}>Party Joining Date</label>
                   <input type="date" name="party_joining_date" value={formData.party_joining_date} onChange={handleInputChange} style={isEditMode && !editableForms.party ? readOnlyStyle : inputStyle} disabled={isEditMode && !editableForms.party} />
@@ -1282,57 +1300,58 @@ useEffect(() => {
                 selectedIndex={selectedBankIndex}
                 onSelect={(index, record) => {
                   setSelectedBankIndex(index);
+                  setShowAddBank(false);
                   setBankId(record.bank_id);
                   setBankFormData({ bank_name: record.bank_name || '', account_number: record.account_number || '', routing_number: record.routing_number || '', bank_status: record.bank_status || '', zip_code: record.zip_code || '' });
                   setEditableForms(prev => ({ ...prev, bank: false }));
                 }}
                 columns={[
-                   { label: 'Bank Name', key: 'bank_name' },
-                   { label: 'Account Number', key: 'account_number' },
-                   { label: 'Routing Number', key: 'routing_number' },
-                   { label: 'Status', key: 'bank_status' },
-                   { label: 'Zip Code', key: 'zip_code' },
+                  { label: 'Bank Name', key: 'bank_name' },
+                  { label: 'Account Number', key: 'account_number' },
+                  { label: 'Routing Number', key: 'routing_number' },
+                  { label: 'Status', key: 'bank_status' },
+                  { label: 'Zip Code', key: 'zip_code' },
                 ]}
               />
 
 
 
-                    {/* Add New Bank */}
-              
-             <div style={{ borderTop: '2px solid #dee2e6', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+              {/* Add New Bank */}
+
+              <div style={{ borderTop: '2px solid #dee2e6', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
                 {!showAddBank ? (
-                   <button
-                   type="button"
-                   onClick={() => {
-                   setBankFormData({ bank_name: '', account_number: '', routing_number: '', bank_status: '', zip_code: '' });
-                   setSelectedBankIndex(null);  
-                   setShowAddBank(true);
-                  }}
-               style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}
-            >
-             + Add New Bank
-           </button>
-          ) : (
-        <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-             <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Bank</h3>
-              <button type="button" onClick={() => setShowAddBank(false)}
-               style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
-               ✕ Cancel
-             </button>
-           </div>
-        <form onSubmit={async (e) => { await handleBankSubmit(e); setShowAddBank(false); }} style={{ maxWidth: '600px' }}>
-         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Bank Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="bank_name" value={bankFormData.bank_name} onChange={handleBankInputChange} style={inputStyle} required /></div>
-         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Account Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="account_number" value={bankFormData.account_number} onChange={handleBankInputChange} style={inputStyle} required /></div>
-         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Routing Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="routing_number" value={bankFormData.routing_number} onChange={handleBankInputChange} style={inputStyle} required /></div>
-         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Bank Status</label><select name="bank_status" value={bankFormData.bank_status} onChange={handleBankInputChange} style={inputStyle}><option value="">Select Status</option><option value="Active">Active</option><option value="Inactive">Inactive</option><option value="Pending">Pending</option></select></div>
-         <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Zip Code</label><input type="text" name="zip_code" value={bankFormData.zip_code} onChange={handleBankInputChange} style={inputStyle} /></div>
-         <button type="submit" style={buttonStyle}>Save Bank</button>
-       </form>
-       </div>
-     )}
-    </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBankFormData({ bank_name: '', account_number: '', routing_number: '', bank_status: '', zip_code: '' });
+                      setSelectedBankIndex(null);
+                      setShowAddBank(true);
+                    }}
+                    style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginBottom: '10px' }}
+                  >
+                    + Add New Bank
+                  </button>
+                ) : (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Bank</h3>
+                      <button type="button" onClick={() => setShowAddBank(false)}
+                        style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+                        ✕ Cancel
+                      </button>
+                    </div>
+                    <form onSubmit={async (e) => { await handleBankSubmit(e); setShowAddBank(false); }} style={{ maxWidth: '600px' }}>
+                      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+                      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Bank Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="bank_name" value={bankFormData.bank_name} onChange={handleBankInputChange} style={inputStyle} required /></div>
+                      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Account Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="account_number" value={bankFormData.account_number} onChange={handleBankInputChange} style={inputStyle} required /></div>
+                      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Routing Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="routing_number" value={bankFormData.routing_number} onChange={handleBankInputChange} style={inputStyle} required /></div>
+                      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Bank Status</label><select name="bank_status" value={bankFormData.bank_status} onChange={handleBankInputChange} style={inputStyle}><option value="">Select Status</option><option value="Active">Active</option><option value="Inactive">Inactive</option><option value="Pending">Pending</option></select></div>
+                      <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Zip Code</label><input type="text" name="zip_code" value={bankFormData.zip_code} onChange={handleBankInputChange} style={inputStyle} /></div>
+                      <button type="submit" style={buttonStyle}>Save Bank</button>
+                    </form>
+                  </div>
+                )}
+              </div>
 
               {/* Selected Record Form */}
               {selectedBankIndex !== null && (
@@ -1360,7 +1379,7 @@ useEffect(() => {
                 </div>
               )}
 
-        
+
             </div>
           )}
 
@@ -1371,49 +1390,50 @@ useEffect(() => {
             <div>
               <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1.5rem' }}>Contact Information</h2>
               <RecordsList
-               records={contactRecords}
-               selectedIndex={selectedContactIndex}
+                records={contactRecords}
+                selectedIndex={selectedContactIndex}
                 onSelect={(index, record) => {
-                setSelectedContactIndex(index);
-                setContactId(record.contact_id);
-                setContactFormData({ phone_number: record.phone_number || '', email: record.email || '' });
-                setEditableForms(prev => ({ ...prev, contact: false }));
-               }}
-               columns={[
-                 { label: 'Phone Number', key: 'phone_number' },
-                 { label: 'Email', key: 'email' },
-              ]}
+                  setSelectedContactIndex(index);
+                  setShowAddContact(false);
+                  setContactId(record.contact_id);
+                  setContactFormData({ phone_number: record.phone_number || '', email: record.email || '' });
+                  setEditableForms(prev => ({ ...prev, contact: false }));
+                }}
+                columns={[
+                  { label: 'Phone Number', key: 'phone_number' },
+                  { label: 'Email', key: 'email' },
+                ]}
               />
 
-         <div style={{ borderTop: '2px solid #dee2e6', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
-          {!showAddContact ? (
-          <button type="button"
-           onClick={() => {
-           setContactFormData({ phone_number: '', email: '' });
-           setSelectedContactIndex(null);
-           setShowAddContact(true);
-          }}
-          style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
-           + Add New Contact
-         </button>
-      ) : (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Contact</h3>
-        <button type="button" onClick={() => setShowAddContact(false)}
-          style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
-          ✕ Cancel
-        </button>
-      </div>
-      <form onSubmit={async (e) => { await handleContactSubmit(e); setShowAddContact(false); }} style={{ maxWidth: '600px' }}>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Phone Number <span style={{ color: 'red' }}>*</span></label><input type="tel" name="phone_number" value={contactFormData.phone_number} onChange={handleContactInputChange} style={inputStyle} required /></div>
-        <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Email <span style={{ color: 'red' }}>*</span></label><input type="email" name="email" value={contactFormData.email} onChange={handleContactInputChange} style={inputStyle} required /></div>
-        <button type="submit" style={buttonStyle}>Save Contact</button>
-      </form>
-    </div>
-  )}
-</div>
+              <div style={{ borderTop: '2px solid #dee2e6', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+                {!showAddContact ? (
+                  <button type="button"
+                    onClick={() => {
+                      setContactFormData({ phone_number: '', email: '' });
+                      setSelectedContactIndex(null);
+                      setShowAddContact(true);
+                    }}
+                    style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginBottom: '10px' }}>
+                    + Add New Contact
+                  </button>
+                ) : (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Contact</h3>
+                      <button type="button" onClick={() => setShowAddContact(false)}
+                        style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+                        ✕ Cancel
+                      </button>
+                    </div>
+                    <form onSubmit={async (e) => { await handleContactSubmit(e); setShowAddContact(false); }} style={{ maxWidth: '600px' }}>
+                      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+                      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Phone Number <span style={{ color: 'red' }}>*</span></label><input type="tel" name="phone_number" value={contactFormData.phone_number} onChange={handleContactInputChange} style={inputStyle} required /></div>
+                      <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Email <span style={{ color: 'red' }}>*</span></label><input type="email" name="email" value={contactFormData.email} onChange={handleContactInputChange} style={inputStyle} required /></div>
+                      <button type="submit" style={buttonStyle}>Save Contact</button>
+                    </form>
+                  </div>
+                )}
+              </div>
 
 
               {selectedContactIndex !== null && (
@@ -1429,7 +1449,7 @@ useEffect(() => {
                   </form>
                 </div>
               )}
-             
+
             </div>
           )}
 
@@ -1440,42 +1460,43 @@ useEffect(() => {
             <div>
               <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1.5rem' }}>Education Information</h2>
               <RecordsList
-                  records={educationRecords}
-                  selectedIndex={selectedEducationIndex}
-                  onSelect={(index, record) => {
+                records={educationRecords}
+                selectedIndex={selectedEducationIndex}
+                onSelect={(index, record) => {
                   setSelectedEducationIndex(index);
+                  setShowAddEducation(false);
                   setEducationId(record.education_id);
                   setEducationFormData({ degree: record.degree || '', university_name: record.university_name || '', year_awarded: record.year_awarded || '', coursework_details: record.coursework_details || '' });
-                 setEditableForms(prev => ({ ...prev, education: false }));
-               }}
-               columns={[
-                    { label: 'Degree', key: 'degree' },
-                    { label: 'University', key: 'university_name' },
-                    { label: 'Year Awarded', key: 'year_awarded' },
+                  setEditableForms(prev => ({ ...prev, education: false }));
+                }}
+                columns={[
+                  { label: 'Degree', key: 'degree' },
+                  { label: 'University', key: 'university_name' },
+                  { label: 'Year Awarded', key: 'year_awarded' },
                 ]}
               />
 
-       {!showAddEducation ? (
-         <button type="button" onClick={() => { setEducationFormData({ degree: '', university_name: '', year_awarded: '', coursework_details: '' }); setSelectedEducationIndex(null); setShowAddEducation(true); }}
-         style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
-          + Add New Education
-         </button>
-      ) : (
-     <div>
-       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Education</h3>
-        <button type="button" onClick={() => setShowAddEducation(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-     </div>
-     <form onSubmit={async (e) => { await handleEducationSubmit(e); setShowAddEducation(false); }} style={{ maxWidth: '600px' }}>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Degree <span style={{ color: 'red' }}>*</span></label><input type="text" name="degree" value={educationFormData.degree} onChange={handleEducationInputChange} style={inputStyle} required /></div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>University Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="university_name" value={educationFormData.university_name} onChange={handleEducationInputChange} style={inputStyle} required /></div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Year Awarded <span style={{ color: 'red' }}>*</span></label><input type="number" name="year_awarded" value={educationFormData.year_awarded} onChange={handleEducationInputChange} style={inputStyle} min="1950" max="2050" required /></div>
-      <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Coursework Details</label><textarea name="coursework_details" value={educationFormData.coursework_details} onChange={handleEducationInputChange} style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }} /></div>
-      <button type="submit" style={buttonStyle}>Save Education</button>
-     </form>
-    </div>
-     )}
+              {!showAddEducation ? (
+                <button type="button" onClick={() => { setEducationFormData({ degree: '', university_name: '', year_awarded: '', coursework_details: '' }); setSelectedEducationIndex(null); setShowAddEducation(true); }}
+                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginBottom: '10px' }}>
+                  + Add New Education
+                </button>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Education</h3>
+                    <button type="button" onClick={() => setShowAddEducation(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
+                  </div>
+                  <form onSubmit={async (e) => { await handleEducationSubmit(e); setShowAddEducation(false); }} style={{ maxWidth: '600px' }}>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Degree <span style={{ color: 'red' }}>*</span></label><input type="text" name="degree" value={educationFormData.degree} onChange={handleEducationInputChange} style={inputStyle} required /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>University Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="university_name" value={educationFormData.university_name} onChange={handleEducationInputChange} style={inputStyle} required /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Year Awarded <span style={{ color: 'red' }}>*</span></label><input type="number" name="year_awarded" value={educationFormData.year_awarded} onChange={handleEducationInputChange} style={inputStyle} min="1950" max="2050" required /></div>
+                    <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Coursework Details</label><textarea name="coursework_details" value={educationFormData.coursework_details} onChange={handleEducationInputChange} style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }} /></div>
+                    <button type="submit" style={buttonStyle}>Save Education</button>
+                  </form>
+                </div>
+              )}
 
 
               {selectedEducationIndex !== null && (
@@ -1493,7 +1514,7 @@ useEffect(() => {
                   </form>
                 </div>
               )}
- 
+
             </div>
           )}
 
@@ -1507,36 +1528,37 @@ useEffect(() => {
                 records={clientRecords}
                 selectedIndex={selectedClientIndex}
                 onSelect={(index, record) => {
-                setSelectedClientIndex(index);
-                setClientId(record.client_id);
-                setClientFormData({ client_name: record.client_name || '', party_client_joining_date: record.party_client_joining_date || '' });
-                setEditableForms(prev => ({ ...prev, client: false }));
-             }}
-            columns={[
-                { label: 'Client Name', key: 'client_name' },
-                { label: 'Joining Date', key: 'party_client_joining_date' },
-            ]}
+                  setSelectedClientIndex(index);
+                  setShowAddClient(false);
+                  setClientId(record.client_id);
+                  setClientFormData({ client_name: record.client_name || '', party_client_joining_date: record.party_client_joining_date || '' });
+                  setEditableForms(prev => ({ ...prev, client: false }));
+                }}
+                columns={[
+                  { label: 'Client Name', key: 'client_name' },
+                  { label: 'Joining Date', key: 'party_client_joining_date' },
+                ]}
               />
 
-        {!showAddClient ? (
-          <button type="button" onClick={() => { setClientFormData({ client_name: '', party_client_joining_date: '' }); setSelectedClientIndex(null); setShowAddClient(true); }}
-            style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
-            + Add New Client
-         </button>
-        ) : (
-      <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-       <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Client</h3>
-        <button type="button" onClick={() => setShowAddClient(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-      </div>
-      <form onSubmit={async (e) => { await handleClientSubmit(e); setShowAddClient(false); }} style={{ maxWidth: '600px' }}>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="client_name" value={clientFormData.client_name} onChange={handleClientInputChange} style={inputStyle} required /></div>
-        <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Party Client Joining Date <span style={{ color: 'red' }}>*</span></label><input type="date" name="party_client_joining_date" value={clientFormData.party_client_joining_date} onChange={handleClientInputChange} style={inputStyle} required /></div>
-        <button type="submit" style={buttonStyle}>Save Client</button>
-      </form>
-    </div>
-    )}
+              {!showAddClient ? (
+                <button type="button" onClick={() => { setClientFormData({ client_name: '', party_client_joining_date: '' }); setSelectedClientIndex(null); setShowAddClient(true); }}
+                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginBottom: '10px' }}>
+                  + Add New Client
+                </button>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Client</h3>
+                    <button type="button" onClick={() => setShowAddClient(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
+                  </div>
+                  <form onSubmit={async (e) => { await handleClientSubmit(e); setShowAddClient(false); }} style={{ maxWidth: '600px' }}>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="client_name" value={clientFormData.client_name} onChange={handleClientInputChange} style={inputStyle} required /></div>
+                    <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Party Client Joining Date <span style={{ color: 'red' }}>*</span></label><input type="date" name="party_client_joining_date" value={clientFormData.party_client_joining_date} onChange={handleClientInputChange} style={inputStyle} required /></div>
+                    <button type="submit" style={buttonStyle}>Save Client</button>
+                  </form>
+                </div>
+              )}
 
 
               {selectedClientIndex !== null && (
@@ -1552,7 +1574,7 @@ useEffect(() => {
                   </form>
                 </div>
               )}
-          
+
             </div>
           )}
 
@@ -1563,48 +1585,49 @@ useEffect(() => {
             <div>
               <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1.5rem' }}>Experience Information</h2>
               <RecordsList
-               records={experienceRecords}
-               selectedIndex={selectedExperienceIndex}
-               onSelect={(index, record) => {
-               setSelectedExperienceIndex(index);
-               setExperienceId(record.experience_id);
-               setExperienceFormData({ employer_name: record.employer_name || '', from_date: record.from_date || '', to_date: record.to_date || '', designation: record.designation || '', role: record.role || '', job_duties: record.job_duties || '' });
-               setEditableForms(prev => ({ ...prev, experience: false }));
-             }}
-           columns={[
-                 { label: 'Employer Name', key: 'employer_name' },
-                 { label: 'Designation', key: 'designation' },
-                 { label: 'From Date', key: 'from_date' },
-                 { label: 'To Date', key: 'to_date' },
-               ]}
+                records={experienceRecords}
+                selectedIndex={selectedExperienceIndex}
+                onSelect={(index, record) => {
+                  setSelectedExperienceIndex(index);
+                  setShowAddExperience(false);
+                  setExperienceId(record.experience_id);
+                  setExperienceFormData({ employer_name: record.employer_name || '', from_date: record.from_date || '', to_date: record.to_date || '', designation: record.designation || '', role: record.role || '', job_duties: record.job_duties || '' });
+                  setEditableForms(prev => ({ ...prev, experience: false }));
+                }}
+                columns={[
+                  { label: 'Employer Name', key: 'employer_name' },
+                  { label: 'Designation', key: 'designation' },
+                  { label: 'From Date', key: 'from_date' },
+                  { label: 'To Date', key: 'to_date' },
+                ]}
               />
 
 
-             {!showAddExperience ? (
-              <button type="button" onClick={() => { setExperienceFormData({ employer_name: '', from_date: '', to_date: '', designation: '', role: '', job_duties: '' }); setSelectedExperienceIndex(null); setShowAddExperience(true); }}
-             style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
-             + Add New Experience
-           </button>
-          ) : (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Experience</h3>
-               <button type="button" onClick={() => setShowAddExperience(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-         </div>
-          <form onSubmit={async (e) => { await handleExperienceSubmit(e); setShowAddExperience(false); }} style={{ maxWidth: '600px' }}>
-           <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Employer Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="employer_name" value={experienceFormData.employer_name} onChange={handleExperienceInputChange} style={inputStyle} required /></div>
-           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-           <div><label style={labelStyle}>From Date <span style={{ color: 'red' }}>*</span></label><input type="date" name="from_date" value={experienceFormData.from_date} onChange={handleExperienceInputChange} style={inputStyle} required /></div>
-            <div><label style={labelStyle}>To Date <span style={{ color: 'red' }}>*</span></label><input type="date" name="to_date" value={experienceFormData.to_date} onChange={handleExperienceInputChange} style={inputStyle} required /></div>
-          </div>
-            <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Designation <span style={{ color: 'red' }}>*</span></label><input type="text" name="designation" value={experienceFormData.designation} onChange={handleExperienceInputChange} style={inputStyle} required /></div>
-            <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Role</label><input type="text" name="role" value={experienceFormData.role} onChange={handleExperienceInputChange} style={inputStyle} /></div>
-           <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Job Duties</label><textarea name="job_duties" value={experienceFormData.job_duties} onChange={handleExperienceInputChange} style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }} /></div>
-             <button type="submit" style={buttonStyle}>Save Experience</button>
-          </form>
-          </div>
-         )}
+              {!showAddExperience ? (
+                <button type="button" onClick={() => { setExperienceFormData({ employer_name: '', from_date: '', to_date: '', designation: '', role: '', job_duties: '' }); setSelectedExperienceIndex(null); setShowAddExperience(true); }}
+                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginBottom: '10px' }}>
+                  + Add New Experience
+                </button>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Experience</h3>
+                    <button type="button" onClick={() => setShowAddExperience(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
+                  </div>
+                  <form onSubmit={async (e) => { await handleExperienceSubmit(e); setShowAddExperience(false); }} style={{ maxWidth: '600px' }}>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Employer Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="employer_name" value={experienceFormData.employer_name} onChange={handleExperienceInputChange} style={inputStyle} required /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>From Date <span style={{ color: 'red' }}>*</span></label><input type="date" name="from_date" value={experienceFormData.from_date} onChange={handleExperienceInputChange} style={inputStyle} required /></div>
+                      <div><label style={labelStyle}>To Date <span style={{ color: 'red' }}>*</span></label><input type="date" name="to_date" value={experienceFormData.to_date} onChange={handleExperienceInputChange} style={inputStyle} required /></div>
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Designation <span style={{ color: 'red' }}>*</span></label><input type="text" name="designation" value={experienceFormData.designation} onChange={handleExperienceInputChange} style={inputStyle} required /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Role</label><input type="text" name="role" value={experienceFormData.role} onChange={handleExperienceInputChange} style={inputStyle} /></div>
+                    <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Job Duties</label><textarea name="job_duties" value={experienceFormData.job_duties} onChange={handleExperienceInputChange} style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }} /></div>
+                    <button type="submit" style={buttonStyle}>Save Experience</button>
+                  </form>
+                </div>
+              )}
 
 
               {selectedExperienceIndex !== null && (
@@ -1626,7 +1649,7 @@ useEffect(() => {
                   </form>
                 </div>
               )}
-           
+
             </div>
           )}
 
@@ -1637,54 +1660,55 @@ useEffect(() => {
             <div>
               <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1.5rem' }}>Address Information</h2>
               <RecordsList
-               records={addressRecords}
-               selectedIndex={selectedAddressIndex}
-               onSelect={(index, record) => {
-               setSelectedAddressIndex(index);
-               setAddressId(record.address_id);
-               setAddressFormData({ client_id: record.client_id || '', address_type: record.address_type || '', address_line_1: record.address_line_1 || '', address_line_2: record.address_line_2 || '', address_line_3: record.address_line_3 || '', city: record.city || '', state: record.state || '', zipcode: record.zipcode || '', country: record.country || '' });
-               setEditableForms(prev => ({ ...prev, address: false }));
-              }}
-           columns={[
-              { label: 'Address Type', key: 'address_type' },
-              { label: 'Address Line 1', key: 'address_line_1' },
-              { label: 'City', key: 'city' },
-              { label: 'State', key: 'state' },
-              { label: 'Zip Code', key: 'zipcode' },
-            ]}
+                records={addressRecords}
+                selectedIndex={selectedAddressIndex}
+                onSelect={(index, record) => {
+                  setSelectedAddressIndex(index);
+                  setShowAddAddress(false);
+                  setAddressId(record.address_id);
+                  setAddressFormData({ client_id: record.client_id || '', address_type: record.address_type || '', address_line_1: record.address_line_1 || '', address_line_2: record.address_line_2 || '', address_line_3: record.address_line_3 || '', city: record.city || '', state: record.state || '', zipcode: record.zipcode || '', country: record.country || '' });
+                  setEditableForms(prev => ({ ...prev, address: false }));
+                }}
+                columns={[
+                  { label: 'Address Type', key: 'address_type' },
+                  { label: 'Address Line 1', key: 'address_line_1' },
+                  { label: 'City', key: 'city' },
+                  { label: 'State', key: 'state' },
+                  { label: 'Zip Code', key: 'zipcode' },
+                ]}
               />
 
-            
-     {!showAddAddress ? (
-       <button type="button" onClick={() => { setAddressFormData({ client_id: addressFormData.client_id, address_type: '', address_line_1: '', address_line_2: '', address_line_3: '', city: '', state: '', zipcode: '', country: '' }); setSelectedAddressIndex(null); setShowAddAddress(true); }}
-        style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom: '10px' }}>
-         + Add New Address
-       </button>
-         ) : (
-        <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-         <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Address</h3>
-          <button type="button" onClick={() => setShowAddAddress(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-        </div>
-         <form onSubmit={async (e) => { await handleAddressSubmit(e); setShowAddAddress(false); }} style={{ maxWidth: '600px' }}>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client ID</label><input type="text" value={addressFormData.client_id} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Type</label><select name="address_type" value={addressFormData.address_type} onChange={handleAddressInputChange} style={inputStyle}><option value="">Select</option><option value="Home">Home</option><option value="Work">Work</option><option value="Mailing">Mailing</option></select></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 1 <span style={{ color: 'red' }}>*</span></label><input type="text" name="address_line_1" value={addressFormData.address_line_1} onChange={handleAddressInputChange} style={inputStyle} required /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 2</label><input type="text" name="address_line_2" value={addressFormData.address_line_2} onChange={handleAddressInputChange} style={inputStyle} /></div>
-        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 3</label><input type="text" name="address_line_3" value={addressFormData.address_line_3} onChange={handleAddressInputChange} style={inputStyle} /></div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>City <span style={{ color: 'red' }}>*</span></label><input type="text" name="city" value={addressFormData.city} onChange={handleAddressInputChange} style={inputStyle} required /></div>
-        <div><label style={labelStyle}>State <span style={{ color: 'red' }}>*</span></label><input type="text" name="state" value={addressFormData.state} onChange={handleAddressInputChange} style={inputStyle} required /></div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div><label style={labelStyle}>Zip Code <span style={{ color: 'red' }}>*</span></label><input type="text" name="zipcode" value={addressFormData.zipcode} onChange={handleAddressInputChange} style={inputStyle} required /></div>
-        <div><label style={labelStyle}>Country</label><input type="text" name="country" value={addressFormData.country} onChange={handleAddressInputChange} style={inputStyle} /></div>
-       </div>
-      <button type="submit" style={buttonStyle}>Save Address</button>
-      </form>
-     </div>
-    )}
+
+              {!showAddAddress ? (
+                <button type="button" onClick={() => { setAddressFormData({ client_id: addressFormData.client_id, address_type: '', address_line_1: '', address_line_2: '', address_line_3: '', city: '', state: '', zipcode: '', country: '' }); setSelectedAddressIndex(null); setShowAddAddress(true); }}
+                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginBottom: '10px' }}>
+                  + Add New Address
+                </button>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Address</h3>
+                    <button type="button" onClick={() => setShowAddAddress(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
+                  </div>
+                  <form onSubmit={async (e) => { await handleAddressSubmit(e); setShowAddAddress(false); }} style={{ maxWidth: '600px' }}>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client ID</label><input type="text" value={addressFormData.client_id} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Type</label><select name="address_type" value={addressFormData.address_type} onChange={handleAddressInputChange} style={inputStyle}><option value="">Select</option><option value="Home">Home</option><option value="Work">Work</option><option value="Mailing">Mailing</option></select></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 1 <span style={{ color: 'red' }}>*</span></label><input type="text" name="address_line_1" value={addressFormData.address_line_1} onChange={handleAddressInputChange} style={inputStyle} required /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 2</label><input type="text" name="address_line_2" value={addressFormData.address_line_2} onChange={handleAddressInputChange} style={inputStyle} /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 3</label><input type="text" name="address_line_3" value={addressFormData.address_line_3} onChange={handleAddressInputChange} style={inputStyle} /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>City <span style={{ color: 'red' }}>*</span></label><input type="text" name="city" value={addressFormData.city} onChange={handleAddressInputChange} style={inputStyle} required /></div>
+                      <div><label style={labelStyle}>State <span style={{ color: 'red' }}>*</span></label><input type="text" name="state" value={addressFormData.state} onChange={handleAddressInputChange} style={inputStyle} required /></div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                      <div><label style={labelStyle}>Zip Code <span style={{ color: 'red' }}>*</span></label><input type="text" name="zipcode" value={addressFormData.zipcode} onChange={handleAddressInputChange} style={inputStyle} required /></div>
+                      <div><label style={labelStyle}>Country</label><input type="text" name="country" value={addressFormData.country} onChange={handleAddressInputChange} style={inputStyle} /></div>
+                    </div>
+                    <button type="submit" style={buttonStyle}>Save Address</button>
+                  </form>
+                </div>
+              )}
 
 
 
@@ -1712,7 +1736,7 @@ useEffect(() => {
                   </form>
                 </div>
               )}
-          
+
             </div>
           )}
 
@@ -1722,62 +1746,63 @@ useEffect(() => {
           {activeTab === 'immigration' && (
             <div>
               <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1.5rem' }}>Immigration Information</h2>
-              
+
               <RecordsList
-                 records={immigrationRecords}
-                 selectedIndex={selectedImmigrationIndex}
-                 onSelect={(index, record) => {
-                 setSelectedImmigrationIndex(index);
-                 setImmigrationId(record.immigration_id);
-                 setImmigrationFormData({ current_status: record.current_status || '', status_requested: record.status_requested || '', current_status_expiration: record.current_status_expiration || '', consulate_city: record.consulate_city || '', consulate_country: record.consulate_country || '', i94_number: record.i94_number || '', i94_issue_date: record.i94_issue_date || '', i94_expiration: record.i94_expiration || '', last_arrival_date: record.last_arrival_date || '', passport_number: record.passport_number || '', passport_issue_date: record.passport_issue_date || '', passport_expiration_date: record.passport_expiration_date || '', passport_place_of_issue: record.passport_place_of_issue || '' });
-                 setEditableForms(prev => ({ ...prev, immigration: false }));
-               }}
-          columns={[
-               { label: 'Current Status', key: 'current_status' },
-               { label: 'Status Requested', key: 'status_requested' },
-               { label: 'Passport Number', key: 'passport_number' },
-               { label: 'Expiration Date', key: 'passport_expiration_date' },
-             ]}
+                records={immigrationRecords}
+                selectedIndex={selectedImmigrationIndex}
+                onSelect={(index, record) => {
+                  setSelectedImmigrationIndex(index);
+                  setShowAddImmigration(false);
+                  setImmigrationId(record.immigration_id);
+                  setImmigrationFormData({ current_status: record.current_status || '', status_requested: record.status_requested || '', current_status_expiration: record.current_status_expiration || '', consulate_city: record.consulate_city || '', consulate_country: record.consulate_country || '', i94_number: record.i94_number || '', i94_issue_date: record.i94_issue_date || '', i94_expiration: record.i94_expiration || '', last_arrival_date: record.last_arrival_date || '', passport_number: record.passport_number || '', passport_issue_date: record.passport_issue_date || '', passport_expiration_date: record.passport_expiration_date || '', passport_place_of_issue: record.passport_place_of_issue || '' });
+                  setEditableForms(prev => ({ ...prev, immigration: false }));
+                }}
+                columns={[
+                  { label: 'Current Status', key: 'current_status' },
+                  { label: 'Status Requested', key: 'status_requested' },
+                  { label: 'Passport Number', key: 'passport_number' },
+                  { label: 'Expiration Date', key: 'passport_expiration_date' },
+                ]}
               />
 
-         {!showAddImmigration ? (
-             <button type="button" onClick={() => { setImmigrationFormData({ current_status: '', status_requested: '', current_status_expiration: '', consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '', i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '', passport_expiration_date: '', passport_place_of_issue: '' }); setSelectedImmigrationIndex(null); setShowAddImmigration(true); }}
-             style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
-              + Add New Immigration
-            </button>
-            ) : (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Immigration</h3>
-              <button type="button" onClick={() => setShowAddImmigration(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-           </div>
-          <form onSubmit={async (e) => { await handleImmigrationSubmit(e); setShowAddImmigration(false); }} style={{ maxWidth: '800px' }}>
-           <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-           <div><label style={labelStyle}>Current Status <span style={{ color: 'red' }}>*</span></label><input type="text" name="current_status" value={immigrationFormData.current_status} onChange={handleImmigrationInputChange} style={inputStyle} required /></div>
-           <div><label style={labelStyle}>Status Requested</label><input type="text" name="status_requested" value={immigrationFormData.status_requested} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-         </div>
-       <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Status Expiration</label><input type="date" name="current_status_expiration" value={immigrationFormData.current_status_expiration} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>Consulate City</label><input type="text" name="consulate_city" value={immigrationFormData.consulate_city} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-        <div><label style={labelStyle}>Consulate Country</label><input type="text" name="consulate_country" value={immigrationFormData.consulate_country} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      </div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>I-94 Number</label><input type="text" name="i94_number" value={immigrationFormData.i94_number} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>I-94 Issue Date</label><input type="date" name="i94_issue_date" value={immigrationFormData.i94_issue_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-        <div><label style={labelStyle}>I-94 Expiration</label><input type="date" name="i94_expiration" value={immigrationFormData.i94_expiration} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      </div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Last Arrival Date</label><input type="date" name="last_arrival_date" value={immigrationFormData.last_arrival_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Passport Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="passport_number" value={immigrationFormData.passport_number} onChange={handleImmigrationInputChange} style={inputStyle} required /></div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>Passport Issue Date</label><input type="date" name="passport_issue_date" value={immigrationFormData.passport_issue_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-        <div><label style={labelStyle}>Passport Expiration Date</label><input type="date" name="passport_expiration_date" value={immigrationFormData.passport_expiration_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      </div>
-      <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Passport Place of Issue</label><input type="text" name="passport_place_of_issue" value={immigrationFormData.passport_place_of_issue} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
-      <button type="submit" style={buttonStyle}>Save Immigration</button>
-     </form>
-     </div>
-    )}
+              {!showAddImmigration ? (
+                <button type="button" onClick={() => { setImmigrationFormData({ current_status: '', status_requested: '', current_status_expiration: '', consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '', i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '', passport_expiration_date: '', passport_place_of_issue: '' }); setSelectedImmigrationIndex(null); setShowAddImmigration(true); }}
+                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginBottom: '10px' }}>
+                  + Add New Immigration
+                </button>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Immigration</h3>
+                    <button type="button" onClick={() => setShowAddImmigration(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
+                  </div>
+                  <form onSubmit={async (e) => { await handleImmigrationSubmit(e); setShowAddImmigration(false); }} style={{ maxWidth: '800px' }}>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>Current Status <span style={{ color: 'red' }}>*</span></label><input type="text" name="current_status" value={immigrationFormData.current_status} onChange={handleImmigrationInputChange} style={inputStyle} required /></div>
+                      <div><label style={labelStyle}>Status Requested</label><input type="text" name="status_requested" value={immigrationFormData.status_requested} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Status Expiration</label><input type="date" name="current_status_expiration" value={immigrationFormData.current_status_expiration} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>Consulate City</label><input type="text" name="consulate_city" value={immigrationFormData.consulate_city} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+                      <div><label style={labelStyle}>Consulate Country</label><input type="text" name="consulate_country" value={immigrationFormData.consulate_country} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>I-94 Number</label><input type="text" name="i94_number" value={immigrationFormData.i94_number} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>I-94 Issue Date</label><input type="date" name="i94_issue_date" value={immigrationFormData.i94_issue_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+                      <div><label style={labelStyle}>I-94 Expiration</label><input type="date" name="i94_expiration" value={immigrationFormData.i94_expiration} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Last Arrival Date</label><input type="date" name="last_arrival_date" value={immigrationFormData.last_arrival_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Passport Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="passport_number" value={immigrationFormData.passport_number} onChange={handleImmigrationInputChange} style={inputStyle} required /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>Passport Issue Date</label><input type="date" name="passport_issue_date" value={immigrationFormData.passport_issue_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+                      <div><label style={labelStyle}>Passport Expiration Date</label><input type="date" name="passport_expiration_date" value={immigrationFormData.passport_expiration_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+                    </div>
+                    <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Passport Place of Issue</label><input type="text" name="passport_place_of_issue" value={immigrationFormData.passport_place_of_issue} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+                    <button type="submit" style={buttonStyle}>Save Immigration</button>
+                  </form>
+                </div>
+              )}
 
 
 
@@ -1813,7 +1838,7 @@ useEffect(() => {
                   </form>
                 </div>
               )}
-              
+
             </div>
           )}
 
@@ -1823,48 +1848,49 @@ useEffect(() => {
           {activeTab === 'visa-history' && (
             <div>
               <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1.5rem' }}>Visa History</h2>
-              
+
               <RecordsList
-                 records={visaHistoryRecords}
-                 selectedIndex={selectedVisaIndex}
-                 onSelect={(index, record) => {
-                 setSelectedVisaIndex(index);
-                 setVisaHistoryId(record.visa_id);
-                 setVisaHistoryFormData({ visa_type: record.visa_type || '', date_of_arrival: record.date_of_arrival || '', date_of_departure: record.date_of_departure || '', receipt_number: record.receipt_number || '' });
-                 setEditableForms(prev => ({ ...prev, visaHistory: false }));
+                records={visaHistoryRecords}
+                selectedIndex={selectedVisaIndex}
+                onSelect={(index, record) => {
+                  setSelectedVisaIndex(index);
+                  setShowAddVisa(false);
+                  setVisaHistoryId(record.visa_id);
+                  setVisaHistoryFormData({ visa_type: record.visa_type || '', date_of_arrival: record.date_of_arrival || '', date_of_departure: record.date_of_departure || '', receipt_number: record.receipt_number || '' });
+                  setEditableForms(prev => ({ ...prev, visaHistory: false }));
                 }}
-            columns={[
-                 { label: 'Visa Type', key: 'visa_type' },
-                 { label: 'Date of Arrival', key: 'date_of_arrival' },
-                 { label: 'Date of Departure', key: 'date_of_departure' },
-                 { label: 'Receipt Number', key: 'receipt_number' },
-              ]}
+                columns={[
+                  { label: 'Visa Type', key: 'visa_type' },
+                  { label: 'Date of Arrival', key: 'date_of_arrival' },
+                  { label: 'Date of Departure', key: 'date_of_departure' },
+                  { label: 'Receipt Number', key: 'receipt_number' },
+                ]}
               />
 
 
-            {!showAddVisa ? (
-             <button type="button" onClick={() => { setVisaHistoryFormData({ visa_type: '', date_of_arrival: '', date_of_departure: '', receipt_number: '' }); setSelectedVisaIndex(null); setShowAddVisa(true); }}
-               style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
-               + Add New Visa History
-             </button>
-           ) : (
-           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Visa History</h3>
-           <button type="button" onClick={() => setShowAddVisa(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-          </div>
-         <form onSubmit={async (e) => { await handleVisaHistorySubmit(e); setShowAddVisa(false); }} style={{ maxWidth: '600px' }}>
-          <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-           <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Visa Type <span style={{ color: 'red' }}>*</span></label><input type="text" name="visa_type" value={visaHistoryFormData.visa_type} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-            <div><label style={labelStyle}>Date of Arrival <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_arrival" value={visaHistoryFormData.date_of_arrival} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
-            <div><label style={labelStyle}>Date of Departure</label><input type="date" name="date_of_departure" value={visaHistoryFormData.date_of_departure} onChange={handleVisaHistoryInputChange} style={inputStyle} /></div>
-           </div>
-           <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Receipt Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="receipt_number" value={visaHistoryFormData.receipt_number} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
-            <button type="submit" style={buttonStyle}>Save Visa History</button>
-         </form>
-       </div>
-       )}
+              {!showAddVisa ? (
+                <button type="button" onClick={() => { setVisaHistoryFormData({ visa_type: '', date_of_arrival: '', date_of_departure: '', receipt_number: '' }); setSelectedVisaIndex(null); setShowAddVisa(true); }}
+                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginBottom: '10px' }}>
+                  + Add New Visa History
+                </button>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Visa History</h3>
+                    <button type="button" onClick={() => setShowAddVisa(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
+                  </div>
+                  <form onSubmit={async (e) => { await handleVisaHistorySubmit(e); setShowAddVisa(false); }} style={{ maxWidth: '600px' }}>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party ID</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Visa Type <span style={{ color: 'red' }}>*</span></label><input type="text" name="visa_type" value={visaHistoryFormData.visa_type} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>Date of Arrival <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_arrival" value={visaHistoryFormData.date_of_arrival} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
+                      <div><label style={labelStyle}>Date of Departure</label><input type="date" name="date_of_departure" value={visaHistoryFormData.date_of_departure} onChange={handleVisaHistoryInputChange} style={inputStyle} /></div>
+                    </div>
+                    <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Receipt Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="receipt_number" value={visaHistoryFormData.receipt_number} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
+                    <button type="submit" style={buttonStyle}>Save Visa History</button>
+                  </form>
+                </div>
+              )}
 
 
 
@@ -1885,123 +1911,144 @@ useEffect(() => {
                   </form>
                 </div>
               )}
-            
+
             </div>
           )}
 
-          {/* 
-              DEPENDENT TAB
-           */}
+          {/* DEPENDENT TAB */}
           {activeTab === 'dependent' && (
             <div>
-              {!showPartyDependentForm ? (
-                <div>
-                  <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1.5rem' }}>Dependent Information</h2>
-                   
-                  <RecordsList
-                    records={dependentRecords}
-                    selectedIndex={selectedDependentIndex}
-                    onSelect={(index, record) => {
-                    setSelectedDependentIndex(index);
-                    setDependentPartyId(record.party_id_2 || record.party_id);
-                    setPartyDependentRel(record.party_1_2_rel || '');
-                    setDependentFormData({ party_type: record.party_type || 'Dependent', party_relationship: record.party_relationship || '', first_name: record.first_name || '', middle_name: record.middle_name || '', last_name: record.last_name || '', date_of_birth: record.date_of_birth || '', ssn: record.ssn || '', party_joining_date: record.party_joining_date || '', city_of_birth: record.city_of_birth || '', country_of_birth: record.country_of_birth || '', country_of_citizenship: record.country_of_citizenship || '' });
-                    setEditableForms(prev => ({ ...prev, dependent: false }));
-                  }}
-               columns={[
-                     { label: 'First Name', key: 'first_name' },
-                     { label: 'Last Name', key: 'last_name' },
-                     { label: 'Relationship', key: 'party_relationship' },
-                     { label: 'Date of Birth', key: 'date_of_birth' },
-                   ]}
-                  />
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1.5rem' }}>Dependent Information</h2>
+
+              <RecordsList
+                records={dependentRecords}
+                selectedIndex={selectedDependentIndex}
+                onSelect={(index, record) => {
+                  setSelectedDependentIndex(index);
+                  setShowAddDependent(false);
+                  setDependentPartyId(record.party_id_2 || record.party_id);
+                  setDependentFormData({
+                    party_type: record.party_type || 'Dependent',
+                    party_relationship: record.party_relationship || record.party_1_2_rel || '',
+                    first_name: record.first_name || '',
+                    middle_name: record.middle_name || '',
+                    last_name: record.last_name || '',
+                    date_of_birth: record.date_of_birth || '',
+                    ssn: record.ssn || '',
+                    party_joining_date: record.party_joining_date || '',
+                    city_of_birth: record.city_of_birth || '',
+                    country_of_birth: record.country_of_birth || '',
+                    country_of_citizenship: record.country_of_citizenship || '',
 
 
-                 {!showAddDependent ? (
-                  <button type="button" onClick={() => { setDependentFormData({ party_type: 'Dependent', party_relationship: '', first_name: '', middle_name: '', last_name: '', date_of_birth: '', ssn: '', party_joining_date: '', city_of_birth: '', country_of_birth: '', country_of_citizenship: '' }); setSelectedDependentIndex(null); setShowAddDependent(true); }}
-                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem',marginBottom:'10px' }}>
-                  + Add New Dependent
-                 </button>
-                ) : (
-                <div>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                 <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Dependent</h3>
-                <button type="button" onClick={() => setShowAddDependent(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
-               </div>
-             <form onSubmit={async (e) => { await handleDependentSubmit(e); setShowAddDependent(false); }} style={{ maxWidth: '800px' }}>
-              <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party Type</label><input type="text" value="Dependent" style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-              <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Relationship <span style={{ color: 'red' }}>*</span></label><input type="text" name="party_relationship" value={dependentFormData.party_relationship} onChange={handleDependentInputChange} style={inputStyle} placeholder="e.g. daughter, son, spouse" required /></div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-              <div><label style={labelStyle}>First Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="first_name" value={dependentFormData.first_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
-              <div><label style={labelStyle}>Middle Name</label><input type="text" name="middle_name" value={dependentFormData.middle_name} onChange={handleDependentInputChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Last Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="last_name" value={dependentFormData.last_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
-             </div>
-           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-          <div><label style={labelStyle}>Date of Birth <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_birth" value={dependentFormData.date_of_birth} onChange={handleDependentInputChange} style={inputStyle} required /></div>
-          <div><label style={labelStyle}>SSN <span style={{ color: 'red' }}>*</span></label><input type="text" name="ssn" value={dependentFormData.ssn} onChange={handleDependentInputChange} style={inputStyle} placeholder="XXX-XX-XXXX" maxLength={11} required /></div>
-        </div>
-       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div><label style={labelStyle}>City of Birth</label><input type="text" name="city_of_birth" value={dependentFormData.city_of_birth} onChange={handleDependentInputChange} style={inputStyle} /></div>
-        <div><label style={labelStyle}>Country of Birth</label><select name="country_of_birth" value={dependentFormData.country_of_birth} onChange={handleDependentInputChange} style={inputStyle}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
-       </div>
-        <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Country of Citizenship</label><select name="country_of_citizenship" value={dependentFormData.country_of_citizenship} onChange={handleDependentInputChange} style={inputStyle}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
-        <button type="submit" style={buttonStyle}>Save Dependent</button>
-      </form>
-     </div>
-    )}
+                  });
+                  setEditableForms(prev => ({ ...prev, dependent: false }));
+                }}
+                columns={[
+                  { label: 'First Name', key: 'first_name' },
+                  { label: 'Last Name', key: 'last_name' },
+                  { label: 'Relationship', key: 'party_relationship' },
+                  { label: 'Date of Birth', key: 'date_of_birth' },
+                ]}
+              />
 
-
-
-
-                  {selectedDependentIndex !== null && (
-                    <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Dependent {selectedDependentIndex + 1} Details</h3>
-                        <button type="button" onClick={() => setEditableForms(prev => ({ ...prev, dependent: !prev.dependent }))} style={{ padding: '0.4rem 1rem', backgroundColor: editableForms.dependent ? '#dc3545' : '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>{editableForms.dependent ? '✕ Cancel' : '✏️ Edit'}</button>
-                      </div>
-                      <form onSubmit={handleUpdateDependent} style={{ maxWidth: '800px' }}>
-                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party Type</label><input type="text" value="Dependent" style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Relationship</label><input type="text" name="party_relationship" value={dependentFormData.party_relationship} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} /></div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                          <div><label style={labelStyle}>First Name</label><input type="text" name="first_name" value={dependentFormData.first_name} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} /></div>
-                          <div><label style={labelStyle}>Middle Name</label><input type="text" name="middle_name" value={dependentFormData.middle_name} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} /></div>
-                          <div><label style={labelStyle}>Last Name</label><input type="text" name="last_name" value={dependentFormData.last_name} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} /></div>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                          <div><label style={labelStyle}>Date of Birth</label><input type="date" name="date_of_birth" value={dependentFormData.date_of_birth} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} /></div>
-                          <div><label style={labelStyle}>SSN</label><input type="text" name="ssn" value={dependentFormData.ssn} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} maxLength={11} /></div>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                          <div><label style={labelStyle}>City of Birth</label><input type="text" name="city_of_birth" value={dependentFormData.city_of_birth} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} /></div>
-                          <div><label style={labelStyle}>Country of Birth</label><select name="country_of_birth" value={dependentFormData.country_of_birth} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
-                        </div>
-                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Country of Citizenship</label><select name="country_of_citizenship" value={dependentFormData.country_of_citizenship} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                          {editableForms.dependent && <button type="submit" style={{ ...buttonStyle, flex: 1 }}>Update Dependent</button>}
-                          <button type="button" onClick={() => setShowPartyDependentForm(true)} style={{ ...buttonStyle, flex: 1, backgroundColor: '#6c757d' }}>Next → View Relationship</button>
-                        </div>
-                      </form>
+              {/* Selected Record — Edit Mode */}
+              {selectedDependentIndex !== null && (
+                <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', border: '1px solid #dee2e6', marginBottom: '2rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600' }}>Dependent {selectedDependentIndex + 1} Details</h3>
+                    <button type="button" onClick={() => setEditableForms(prev => ({ ...prev, dependent: !prev.dependent }))}
+                      style={{ padding: '0.4rem 1rem', backgroundColor: editableForms.dependent ? '#dc3545' : '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+                      {editableForms.dependent ? '✕ Cancel' : '✏️ Edit'}
+                    </button>
+                  </div>
+                  <form onSubmit={handleUpdateDependent} style={{ maxWidth: '800px' }}>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party Type</label><input type="text" value="Dependent" style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Relationship to Employee</label><input type="text" name="party_relationship" value={dependentFormData.party_relationship} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>First Name</label><input type="text" name="first_name" value={dependentFormData.first_name} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} /></div>
+                      <div><label style={labelStyle}>Middle Name</label><input type="text" name="middle_name" value={dependentFormData.middle_name} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} /></div>
+                      <div><label style={labelStyle}>Last Name</label><input type="text" name="last_name" value={dependentFormData.last_name} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} /></div>
                     </div>
-                  )}
- 
-                </div>
-              ) : (
-                <div>
-                  <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1.5rem' }}>Party Dependent Relationship</h2>
-                  <form onSubmit={handlePartyDependentSubmit} style={{ maxWidth: '600px', margin: '0 auto' }}>
-                    <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Main Employee Party ID (party_id_1)</label><input type="text" value={lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId') || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /><small style={{ color: '#6c757d' }}>Auto-filled</small></div>
-                    <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Dependent Party ID (party_id_2)</label><input type="text" value={dependentPartyId || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /><small style={{ color: '#6c757d' }}>Auto-filled from dependent</small></div>
-                    <div style={{ marginBottom: '2rem' }}><label style={labelStyle}>Relationship <span style={{ color: 'red' }}>*</span></label><input type="text" value={partyDependentRel} onChange={(e) => setPartyDependentRel(e.target.value)} style={inputStyle} placeholder="e.g. Son, Daughter, Spouse" required /></div>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                      <button type="button" onClick={() => setShowPartyDependentForm(false)} style={{ ...buttonStyle, width: 'auto', padding: '0.75rem 2rem', backgroundColor: '#6c757d' }}>← Back</button>
-                      <button type="submit" style={buttonStyle}>Save Party Dependent</button>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>Date of Birth</label><input type="date" name="date_of_birth" value={dependentFormData.date_of_birth} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} /></div>
+                      <div><label style={labelStyle}>SSN</label><input type="text" name="ssn" value={dependentFormData.ssn} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} maxLength={11} /></div>
                     </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>City of Birth</label><input type="text" name="city_of_birth" value={dependentFormData.city_of_birth} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} /></div>
+                      <div><label style={labelStyle}>Country of Birth</label><select name="country_of_birth" value={dependentFormData.country_of_birth} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Country of Citizenship</label><select name="country_of_citizenship" value={dependentFormData.country_of_citizenship} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
+                    {editableForms.dependent && <button type="submit" style={buttonStyle}>Update Dependent</button>}
                   </form>
                 </div>
               )}
+
+              {/* Add New Dependent — Single Form, Both APIs */}
+              {!showAddDependent ? (
+                <button type="button"
+                  onClick={() => {
+                    setDependentFormData({
+                      party_type: 'Dependent', party_relationship: '', first_name: '', middle_name: '',
+                      last_name: '', date_of_birth: '', ssn: '', party_joining_date: '',
+                      city_of_birth: '', country_of_birth: '', country_of_citizenship: '',
+                      party_1_2_rel: '',
+                    });
+                    setSelectedDependentIndex(null);
+                    setShowAddDependent(true);
+                  }}
+                  style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginBottom: '10px' }}>
+                  + Add New Dependent
+                </button>
+              ) : (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Dependent</h3>
+                    <button type="button" onClick={() => setShowAddDependent(false)}
+                      style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+                      ✕ Cancel
+                    </button>
+                  </div>
+                  <form onSubmit={async (e) => { await handleDependentSubmit(e); setShowAddDependent(false); }} style={{ maxWidth: '800px' }}>
+
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party Type</label><input type="text" value="Dependent" style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+
+
+
+                    {/* ← Relationship to employee */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={labelStyle}>Relationship to Employee <span style={{ color: 'red' }}>*</span></label>
+                      <input type="text" name="party_relationship" value={dependentFormData.party_relationship} onChange={handleDependentInputChange}
+                        style={inputStyle} placeholder="e.g. Son, Daughter, Spouse" required />
+                    </div>
+
+
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>First Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="first_name" value={dependentFormData.first_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
+                      <div><label style={labelStyle}>Middle Name</label><input type="text" name="middle_name" value={dependentFormData.middle_name} onChange={handleDependentInputChange} style={inputStyle} /></div>
+                      <div><label style={labelStyle}>Last Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="last_name" value={dependentFormData.last_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>Date of Birth <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_birth" value={dependentFormData.date_of_birth} onChange={handleDependentInputChange} style={inputStyle} required /></div>
+                      <div><label style={labelStyle}>SSN <span style={{ color: 'red' }}>*</span></label><input type="text" name="ssn" value={dependentFormData.ssn} onChange={handleDependentInputChange} style={inputStyle} placeholder="XXX-XX-XXXX" maxLength={11} required /></div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div><label style={labelStyle}>City of Birth</label><input type="text" name="city_of_birth" value={dependentFormData.city_of_birth} onChange={handleDependentInputChange} style={inputStyle} /></div>
+                      <div><label style={labelStyle}>Country of Birth</label><select name="country_of_birth" value={dependentFormData.country_of_birth} onChange={handleDependentInputChange} style={inputStyle}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
+                    </div>
+
+                    <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Country of Citizenship</label><select name="country_of_citizenship" value={dependentFormData.country_of_citizenship} onChange={handleDependentInputChange} style={inputStyle}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
+
+                    <button type="submit" style={buttonStyle}>Save Dependent</button>
+                  </form>
+                </div>
+              )}
+
             </div>
           )}
-
         </div>
       </div>
     </div>

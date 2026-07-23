@@ -3,10 +3,7 @@
     <div class="row d-flex justify-content-center align-items-center h-100">
       <div class="col-lg-12 col-xl-10">
         <div class="card-body p-4">
-          <!-- Back to Folders Button -->
-          <button type="button" class="btn btn-secondary mb-4" (click)="goBackToFolders()">
-            Back to Folders
-          </button>
+         
 
           <!-- Header -->
           <h2 class="mb-4 text-primary">
@@ -28,7 +25,7 @@
           <form *ngIf="!parentSubFinalChildFoldername" [formGroup]="createFolderForm" (ngSubmit)="createFolder()" class="mb-5">
             <div class="input-group mb-3">
               <input formControlName="folderName" type="text" class="form-control" placeholder="New Folder Name"
-                style="border-radius: 5px 0 0 5px;">
+                style="border-radius: 5px 0 0 5px;">r
               <button type="submit" class="btn btn-success" style="border-radius: 0 5px 5px 0;">Create Folder </button>
             </div>
           </form>
