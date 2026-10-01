@@ -22,6 +22,7 @@ import { AnalyticsComponent } from './pages/services/analytics/analytics.compone
 import { AutomationqualityComponent } from './pages/services/automationquality/automationquality.component';
 import { AimlComponent } from './pages/services/aiml/aiml.component';
 import { CybersecurityComponent } from './pages/services/cybersecurity/cybersecurity.component';
+import { EngagementmodelComponent } from './pages/services/engagementmodel/engagementmodel.component';
 import { MedtechComponent } from './pages/products/medtech/medtech.component';
 import { IrmsComponent } from './pages/products/irms/irms.component';
 import { SearchbloxComponent } from './pages/products/searchblox/searchblox.component';
@@ -65,6 +66,7 @@ export const routes: Routes = [
   { path: 'automation-quality', component: AutomationqualityComponent, title: "Automation and Quality Engineering - Sumitech" },
   { path: 'ai-ml', component: AimlComponent, title: "AI and ML - Sumitech" },
   { path: 'cyber-security', component: CybersecurityComponent, title: "Cyber Security - Sumitech" },
+  { path: 'engagement-model', component: EngagementmodelComponent, title: "Engagement Model - Sumitech" },
   { path: 'medtech', component: MedtechComponent, title: "MedTechMD - Sumitech" },
   { path: 'irms', component: IrmsComponent, title: "IRMS - Sumitech" },
   { path: 'searchblox', component: SearchbloxComponent, title: "Searchblox - Sumitech" },

@@ -91,7 +91,7 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
         {/* ── Show for ALL roles */}
         <li
           className={activePage === 'parties' ? 'active' : ''}
-          onClick={() => alert('Party coming soon!')}>
+          onClick={() => window.location.href = '/welcomePage'}>
           <span className="menu-icon">👥</span><span>Parties</span>
         </li>
 
@@ -105,9 +105,21 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
 
         {/* ── Show ONLY for Admin */}
         {isAdmin && (
+          /* <li
+             className={activePage === 'add-employee' ? 'active' : ''}
+             onClick={() => window.location.href = '/addEmployee'}>
+             <span className="menu-icon">➕</span><span>Add Employees</span>
+           </li>*/
           <li
             className={activePage === 'add-employee' ? 'active' : ''}
-            onClick={() => window.location.href = '/addEmployee'}>
+            onClick={() => {
+              localStorage.removeItem('selectedEmployee');
+              localStorage.removeItem('lastCreatedPartyId');
+              localStorage.removeItem('lastCreatedClientId');
+              localStorage.removeItem('activeTab');
+              localStorage.removeItem('dependentSubTab');
+              window.location.href = '/addEmployee';
+            }}>
             <span className="menu-icon">➕</span><span>Add Employees</span>
           </li>
         )}
@@ -163,6 +175,9 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
               localStorage.removeItem('lastCreatedPartyId');
               localStorage.removeItem('lastCreatedClientId');
               localStorage.removeItem('registrationSuccess');
+              localStorage.removeItem('selectedEmployee');
+              localStorage.removeItem('activeTab');
+              localStorage.removeItem('dependentSubTab');
               window.location.href = '/login';
             }
           }}

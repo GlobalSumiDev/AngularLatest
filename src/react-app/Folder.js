@@ -650,9 +650,9 @@ const FolderPage = () => {
         <div className="folder-content">
           <h3 className="folder-title">Folder Home</h3>
           {/* Back Button */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
             <button type="button" onClick={handleBack}
-              style={{ color: 'white', borderRadius: '70px', width: '50px', height: '40px', backgroundColor: "#3dce41", border: 'none', cursor: 'pointer' }}>
+              style={{ color: 'white', borderRadius: '70px', width: '50px', height: '40px', backgroundColor: "#3dce41", border: 'none', cursor: 'pointer'}}>
               ←
             </button>
 
