@@ -6,7 +6,7 @@ import config from './config';
 import Select from 'react-select';
 
 const Employee = () => {
-  // const [activeTab, setActiveTab] = useState('add-employee');
+
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'add-employee');
   const [employees, setEmployees] = useState([]);
   const [lastCreatedPartyId, setLastCreatedPartyId] = useState(null);
@@ -15,6 +15,7 @@ const Employee = () => {
   const COUNTRIES = countryList.getNames();
   const today = new Date().toISOString().split('T')[0];
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const [dependentPartyId, setDependentPartyId] = useState(null);
   const [showPartyDependentForm, setShowPartyDependentForm] = useState(false);
@@ -50,7 +51,118 @@ const Employee = () => {
   const [dependentRecords, setDependentRecords] = useState([]);
 
   const [showSSN, setShowSSN] = useState(false);
+  const [isLoadingPartySSN, setIsLoadingPartySSN] = useState(false);
   const [showDepSSN, setShowDepSSN] = useState(false);
+  const [isLoadingDependentSSN, setIsLoadingDependentSSN] = useState(false);
+
+  const getMaskedSsn = (value = '') => {
+    const digits = String(value).replace(/\D/g, '').slice(-9);
+    if (!digits) return '';
+    return `XXX-XX-${digits.slice(-4)}`;
+  };
+
+  const handlePartySsnToggle = async () => {
+    if (showSSN) {
+      setShowSSN(false);
+      return;
+    }
+
+    if (!isEditMode) {
+      setShowSSN(true);
+      return;
+    }
+
+    const partyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
+    if (!partyId || isLoadingPartySSN) return;
+
+    setIsLoadingPartySSN(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const response = await fetch(
+        `${config.BASE_URL}/party/party-ssn?party_id=${encodeURIComponent(partyId)}`,
+        { headers }
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch SSN (${response.status})`);
+      }
+
+      const responseText = await response.text();
+      let ssnData;
+      try {
+        ssnData = JSON.parse(responseText);
+      } catch {
+        ssnData = responseText;
+      }
+      const fullSsn = typeof ssnData === 'string'
+        ? ssnData
+        : ssnData?.ssn ?? ssnData?.ssn_masked;
+      if (typeof fullSsn !== 'string' || !fullSsn.trim()) {
+        throw new Error('The party SSN response did not include an SSN value.');
+      }
+
+      setFormData(prev => ({ ...prev, ssn_masked: fullSsn }));
+      setShowSSN(true);
+    } catch (error) {
+      
+      alert(`Failed to show SSN: ${error.message}`);
+    } finally {
+      setIsLoadingPartySSN(false);
+    }
+  };
+
+  const handleDependentSsnToggle = async () => {
+    if (showDepSSN) {
+      setShowDepSSN(false);
+      return;
+    }
+
+    if (selectedDependentIndex === null || showAddDependent) {
+      setShowDepSSN(true);
+      return;
+    }
+
+    if (!dependentPartyId || isLoadingDependentSSN) return;
+
+    setIsLoadingDependentSSN(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const response = await fetch(
+        `${config.BASE_URL}/dependent/dependent-ssn?dependent_id=${encodeURIComponent(dependentPartyId)}`,
+        { headers }
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch dependent SSN (${response.status})`);
+      }
+
+      const responseText = await response.text();
+      let ssnData;
+      try {
+        ssnData = JSON.parse(responseText);
+      } catch {
+        ssnData = responseText;
+      }
+      const fullSsn = typeof ssnData === 'string'
+        ? ssnData
+        : ssnData?.dependent_ssn ?? ssnData?.ssn ?? ssnData?.ssn_masked;
+      if (typeof fullSsn !== 'string' || !fullSsn.trim()) {
+        throw new Error('The dependent SSN response did not include an SSN value.');
+      }
+
+      setDependentFormData(prev => ({ ...prev, ssn_masked: fullSsn }));
+      setShowDepSSN(true);
+    } catch (error) {
+      
+      alert(`Failed to show dependent SSN: ${error.message}`);
+    } finally {
+      setIsLoadingDependentSSN(false);
+    }
+  };
 
   // ── Selected Record Index for each form
   const [selectedBankIndex, setSelectedBankIndex] = useState(null);
@@ -74,7 +186,7 @@ const Employee = () => {
   const [showAddDependent, setShowAddDependent] = useState(false);
 
 
-  // const [dependentSubTab, setDependentSubTab] = useState('personal');
+
   const [dependentSubTab, setDependentSubTab] = useState(() => localStorage.getItem('dependentSubTab') || 'personal');
 
   // Dependent's own Contact
@@ -91,6 +203,7 @@ const Employee = () => {
   const [showAddDepImmigration, setShowAddDepImmigration] = useState(false);
   const [depImmigrationFormData, setDepImmigrationFormData] = useState({
     current_status: '', status_requested: '', current_status_expiration: '',
+    current_petition_start_date: '', current_petition_receipt_number: '',
     consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '',
     i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '',
     passport_expiration_date: '', passport_place_of_issue: ''
@@ -111,8 +224,8 @@ const Employee = () => {
 
   // ── Form Data States
   const [formData, setFormData] = useState({
-    party_type: 'Employee', party_relationship: 'Self', first_name: '', middle_name: '', last_name: '',
-    date_of_birth: '', ssn: '', assigned_user_id: '', party_joining_date: '', city_of_birth: '',
+    party_type: 'Employee', party_relationship: 'Self', first_name: '', middle_name: '', last_name: '', gender: '',
+    date_of_birth: '', ssn_masked: '', assigned_user_id: '', party_joining_date: '', city_of_birth: '',
     country_of_birth: '', country_of_citizenship: ''
   });
 
@@ -126,7 +239,7 @@ const Employee = () => {
   });
 
   const [bankFormData, setBankFormData] = useState({
-    party_id: '', bank_name: '', account_number: '', routing_number: '', bank_status: '', zip_code: ''
+    party_id: '', bank_name: '', account_number: '', routing_number: '', bank_status: '', zip_code: '', account_type: ''
   });
 
   const [educationFormData, setEducationFormData] = useState({
@@ -138,11 +251,14 @@ const Employee = () => {
   });
 
   const [clientFormData, setClientFormData] = useState({
-    party_id: '', client_name: '', party_client_joining_date: ''
+    party_id: '', client_name: '', party_client_joining_date: '', client_end_date: '',
+    billing_rate: '',
+    client_manager_name: '', client_manager_email: '', client_manager_phone_number: ''
   });
 
   const [immigrationFormData, setImmigrationFormData] = useState({
     party_id: '', current_status: '', status_requested: '', current_status_expiration: '',
+    current_petition_start_date: '', current_petition_receipt_number: '',
     consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '',
     i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '',
     passport_expiration_date: '', passport_place_of_issue: ''
@@ -153,8 +269,8 @@ const Employee = () => {
   });
 
   const [dependentFormData, setDependentFormData] = useState({
-    party_type: 'Dependent', party_relationship: '', first_name: '', middle_name: '',
-    last_name: '', date_of_birth: '', ssn: '', party_joining_date: '',
+    party_type: 'Dependent', party_relationship: '', first_name: '', middle_name: '', gender: '',
+    last_name: '', date_of_birth: '', ssn_masked: '', party_joining_date: '',
     city_of_birth: '', country_of_birth: '', country_of_citizenship: '', party_1_2_rel: '', assigned_user_id: '',
   });
 
@@ -198,8 +314,9 @@ const Employee = () => {
   const fetchPartyDetails = async (partyId) => {
 
     try {
+      setShowSSN(false);
       const token = localStorage.getItem('authToken');
-      console.log('token:', token);
+      
       const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
@@ -219,15 +336,16 @@ const Employee = () => {
             first_name: party.first_name || '',
             middle_name: party.middle_name || '',
             last_name: party.last_name || '',
+            gender: party.gender || '',
             date_of_birth: party.date_of_birth || '',
-            ssn: party.ssn || '',
+            ssn_masked: party.ssn_masked || '',
             assigned_user_id: party.assigned_to || '',
             party_joining_date: party.party_joining_date || '',
             city_of_birth: party.city_of_birth || '',
             country_of_birth: party.country_of_birth || '',
             country_of_citizenship: party.country_of_citizenship || '',
           });
-          console.log('formData set');
+          
         }
       }
 
@@ -241,10 +359,10 @@ const Employee = () => {
 
       if (bankRes.ok) {
         const bankData = await bankRes.json();
-        console.log('bank data:', bankData);
+        
 
         if (bankData.message || !Array.isArray(bankData) && !bankData.bank_id) {
-          console.log('No bank records found');
+          
           setBankRecords([]);
         } else {
           const banks = Array.isArray(bankData) ? bankData : [bankData];
@@ -257,6 +375,7 @@ const Employee = () => {
               bank_name: banks[0].bank_name || '',
               account_number: banks[0].account_number || '',
               routing_number: banks[0].routing_number || '',
+              account_type: banks[0].account_type || '',
               bank_status: banks[0].bank_status || '',
               zip_code: banks[0].zip_code || '',
             });
@@ -264,7 +383,7 @@ const Employee = () => {
           }
         }
       } else {
-        console.log('Bank API failed:', bankRes.status);
+       
       }
 
       const contactRes = await fetch(
@@ -274,9 +393,9 @@ const Employee = () => {
 
       if (contactRes.ok) {
         const contactData = await contactRes.json();
-        console.log('contact data:', contactData);
+       
         if (contactData.message || !Array.isArray(contactData) && !contactData.contact_id) {
-          console.log('No contact records found');
+          
           setContactRecords([]);
         } else {
           const contacts = Array.isArray(contactData) ? contactData : [contactData];
@@ -291,7 +410,7 @@ const Employee = () => {
           }
         }
       } else {
-        console.log('Contact API failed:', contactRes.status);
+       
       }
 
 
@@ -301,9 +420,9 @@ const Employee = () => {
       );
       if (educationRes.ok) {
         const educationData = await educationRes.json();
-        console.log('education data:', educationData);
+    
         if (educationData.message || !Array.isArray(educationData) && !educationData.education_id) {
-          console.log('No education records found');
+          
           setEducationRecords([]);
         } else {
           const educations = Array.isArray(educationData) ? educationData : [educationData];
@@ -320,7 +439,7 @@ const Employee = () => {
           }
         }
       } else {
-        console.log('Education API failed:', educationRes.status);
+      
       }
 
 
@@ -331,9 +450,9 @@ const Employee = () => {
 
       if (clientRes.ok) {
         const clientData = await clientRes.json();
-        console.log('client data:', clientData);
+       
         if (clientData.message || !Array.isArray(clientData) && !clientData.client_id) {
-          console.log('No client records found');
+         
           setClientRecords([]);
         } else {
           const clients = Array.isArray(clientData) ? clientData : [clientData];
@@ -343,12 +462,17 @@ const Employee = () => {
             setClientFormData({
               client_name: clients[0].client_name || "",
               party_client_joining_date: clients[0].party_client_joining_date || "",
+              client_end_date: clients[0].client_end_date || "",
+              billing_rate: clients[0].billing_rate ?? clients[0].billingRate ?? "",
+              client_manager_name: clients[0].client_manager_name || "",
+              client_manager_email: clients[0].client_manager_email || "",
+              client_manager_phone_number: clients[0].client_manager_phone_number || "",
             });
             setSelectedClientIndex(0);
           }
         }
       } else {
-        console.log('Client API failed:', clientRes.status);
+        
       }
 
       const experienceRes = await fetch(
@@ -358,9 +482,9 @@ const Employee = () => {
 
       if (experienceRes.ok) {
         const experienceData = await experienceRes.json();
-        console.log('experience data:', experienceData);
+       
         if (experienceData.message || !Array.isArray(experienceData) && !experienceData.experience_id) {
-          console.log('No experience records found');
+         
           setExperienceRecords([]);
         } else {
           const experiences = Array.isArray(experienceData) ? experienceData : [experienceData];
@@ -379,7 +503,7 @@ const Employee = () => {
           }
         }
       } else {
-        console.log('Experience API failed:', experienceRes.status);
+       
         setExperienceRecords([]);
       }
 
@@ -390,9 +514,9 @@ const Employee = () => {
 
       if (addressRes.ok) {
         const addressData = await addressRes.json();
-        console.log('Address data:', addressData);
+       
         if (addressData.message || !Array.isArray(addressData) && !addressData.address_id) {
-          console.log('No address records found');
+         
           setAddressRecords([]);
         } else {
           const addresss = Array.isArray(addressData) ? addressData : [addressData];
@@ -416,7 +540,7 @@ const Employee = () => {
           }
         }
       } else {
-        console.log('Address API failed:', addressRes.status);
+        
       }
 
       const immigrationRes = await fetch(
@@ -426,9 +550,9 @@ const Employee = () => {
 
       if (immigrationRes.ok) {
         const immigrationData = await immigrationRes.json();
-        console.log('Immigration data:', immigrationData);
+      
         if (immigrationData.message || !Array.isArray(immigrationData) && !immigrationData.bank_id) {
-          console.log('No immigration records found');
+          
           setImmigrationRecords([]);
         } else {
           const immigrations = Array.isArray(immigrationData) ? immigrationData : [immigrationData];
@@ -439,6 +563,8 @@ const Employee = () => {
               current_status: immigrations[0].current_status || '',
               status_requested: immigrations[0].status_requested || '',
               current_status_expiration: immigrations[0].current_status_expiration || '',
+              current_petition_start_date: immigrations[0].current_petition_start_date || '',
+              current_petition_receipt_number: immigrations[0].current_petition_receipt_number || '',
               consulate_city: immigrations[0].consulate_city || '',
               consulate_country: immigrations[0].consulate_country || '',
               i94_number: immigrations[0].i94_number || '',
@@ -454,7 +580,7 @@ const Employee = () => {
           }
         }
       } else {
-        console.log('Immigration API failed:', immigrationRes.status);
+        
       }
 
       const visaHistoryRes = await fetch(
@@ -465,7 +591,7 @@ const Employee = () => {
       if (visaHistoryRes.ok) {
         const visaHistoryData = await visaHistoryRes.json();
         if (visaHistoryData.message || !Array.isArray(visaHistoryData) && !visaHistoryData.visaHistory_id) {
-          console.log('No visahistory records found');
+         
           setVisaHistoryRecords([]);
         } else {
 
@@ -473,7 +599,7 @@ const Employee = () => {
           setVisaHistoryRecords(visaHistories);
           if (visaHistories.length > 0) {
             setVisaHistoryId(visaHistories[0].visa_id);
-            console.log('visaHistoryId set to:', visaHistories[0].visa_id);
+           
             setVisaHistoryFormData({
 
 
@@ -487,7 +613,7 @@ const Employee = () => {
           }
         }
       } else {
-        console.log('Visahistory API failed:', visaHistoryRes.status);
+       
       }
 
 
@@ -504,15 +630,15 @@ const Employee = () => {
 
       if (dependentsRes.ok) {
         const dependentsData = await dependentsRes.json();
-        console.log('Dependents data:', dependentsData);
+       
 
         if (dependentsData.message || (!Array.isArray(dependentsData) && !dependentsData.dependent_id)) {
-          console.log('No dependent records found');
+         
           setDependentRecords([]);
         } else {
           const dependents = Array.isArray(dependentsData) ? dependentsData : [dependentsData];
           setDependentRecords(dependents);
-          console.log('Dependent records:', dependents);
+          
 
           if (dependents.length > 0) {
             setDependentPartyId(dependents[0].dependent_id);
@@ -523,8 +649,9 @@ const Employee = () => {
               first_name: dependents[0].first_name || '',
               middle_name: dependents[0].middle_name || '',
               last_name: dependents[0].last_name || '',
+              gender: dependents[0].gender || '',
               date_of_birth: dependents[0].date_of_birth || '',
-              ssn: dependents[0].ssn || '',
+              ssn_masked: dependents[0].ssn_masked || '',
               party_joining_date: dependents[0].party_joining_date || '',
               city_of_birth: dependents[0].city_of_birth || '',
               country_of_birth: dependents[0].country_of_birth || '',
@@ -535,7 +662,7 @@ const Employee = () => {
           }
         }
       } else {
-        console.log('Dependents-by-party API failed:', dependentsRes.status);
+        
         setDependentRecords([]);
       }
 
@@ -571,7 +698,7 @@ const Employee = () => {
           }
         }
       } else {
-        console.log('Dependent Contact API failed:', contactRes.status);
+        
       }
 
       // ── Immigration by dependent_id
@@ -587,6 +714,8 @@ const Employee = () => {
               current_status: immigrations[0].current_status || '',
               status_requested: immigrations[0].status_requested || '',
               current_status_expiration: immigrations[0].current_status_expiration || '',
+              current_petition_start_date: immigrations[0].current_petition_start_date || '',
+              current_petition_receipt_number: immigrations[0].current_petition_receipt_number || '',
               consulate_city: immigrations[0].consulate_city || '',
               consulate_country: immigrations[0].consulate_country || '',
               i94_number: immigrations[0].i94_number || '',
@@ -602,7 +731,7 @@ const Employee = () => {
           }
         }
       } else {
-        console.log('Dependent Immigration API failed:', immigrationRes.status);
+        
       }
 
       // ── Visa History by dependent_id
@@ -624,7 +753,7 @@ const Employee = () => {
           }
         }
       } else {
-        console.log('Dependent Visa History API failed:', visaRes.status);
+       
       }
     } catch (error) {
       console.error('Error fetching dependent sub-details:', error);
@@ -643,10 +772,17 @@ const Employee = () => {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
+      const partyPayload = {
+        ...formData,
+        ssn: formData.ssn_masked,
+      };
       const response = await fetch(`${config.BASE_URL}/party/update-party?party_id=${partyId}`, {
-        method: 'PUT', headers, body: JSON.stringify(formData)
+        method: 'PUT', headers, body: JSON.stringify(partyPayload)
       });
-      if (!response.ok) throw new Error('Failed to update party');
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to update party (${response.status}): ${errorText}`);
+      }
       alert('Employee updated successfully!');
       setEditableForms(prev => ({ ...prev, party: false }));
     } catch (error) {
@@ -716,14 +852,29 @@ const Employee = () => {
   const handleUpdateClient = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...clientFormData,
+        client_end_date: clientFormData.client_end_date || null,
+        client_manager_name: clientFormData.client_manager_name || null,
+        client_manager_email: clientFormData.client_manager_email || null,
+        client_manager_phone_number: clientFormData.client_manager_phone_number || null,
+        ...(isAdmin && {
+          billing_rate: clientFormData.billing_rate === '' ? null : Number(clientFormData.billing_rate),
+        }),
+      };
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const response = await fetch(`${config.BASE_URL}/client/Update-Client?client_id=${clientId}`, {
-        method: 'PUT', headers, body: JSON.stringify(clientFormData)
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(payload)
       });
-      if (!response.ok) throw new Error('Failed to update client');
-      setClientRecords(prev => prev.map((c, i) => i === selectedClientIndex ? { ...c, ...clientFormData } : c));
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to update client (${response.status}): ${errorText}`);
+      }
+      setClientRecords(prev => prev.map((c, i) => i === selectedClientIndex ? { ...c, ...payload } : c));
       alert('Client updated successfully!');
       setEditableForms(prev => ({ ...prev, client: false }));
     } catch (error) {
@@ -781,6 +932,8 @@ const Employee = () => {
         current_status: immigrationFormData.current_status,
         status_requested: immigrationFormData.status_requested || null,
         current_status_expiration: immigrationFormData.current_status_expiration || null,
+        current_petition_start_date: immigrationFormData.current_petition_start_date || null,
+        current_petition_receipt_number: immigrationFormData.current_petition_receipt_number || null,
         consulate_city: immigrationFormData.consulate_city || null,
         consulate_country: immigrationFormData.consulate_country || null,
         i94_number: immigrationFormData.i94_number || null,
@@ -822,8 +975,7 @@ const Employee = () => {
         date_of_departure: visaHistoryFormData.date_of_departure || null,
         receipt_number: visaHistoryFormData.receipt_number,
       };
-      console.log('Party visa history update payload:', JSON.stringify(payload, null, 2));
-      console.log('Updating visa_id:', visaHistoryId);
+   
 
       const response = await fetch(`${config.BASE_URL}/visahistory/Update-Visa-History?visa_id=${visaHistoryId}`, {
         method: 'PUT', headers, body: JSON.stringify(payload)
@@ -845,27 +997,29 @@ const Employee = () => {
   // ── Update Dependent
   const handleUpdateDependent = async (e) => {
     e.preventDefault();
-    console.log('dependentPartyId:', dependentPartyId);
+    
     try {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
+      const payload = {
+        party_type: dependentFormData.party_type || 'Dependent',
+        party_relationship: dependentFormData.party_relationship || '',
+        first_name: dependentFormData.first_name || '',
+        middle_name: dependentFormData.middle_name || '',
+        last_name: dependentFormData.last_name || '',
+        gender: dependentFormData.gender || '',
+        date_of_birth: dependentFormData.date_of_birth || '',
+        ssn_masked: dependentFormData.ssn_masked || '',
+        city_of_birth: dependentFormData.city_of_birth || '',
+        country_of_birth: dependentFormData.country_of_birth || '',
+        country_of_citizenship: dependentFormData.country_of_citizenship || '',
+        assigned_user_id: dependentFormData.assigned_user_id || null,
+      };
+
       const response = await fetch(`${config.BASE_URL}/dependent/update-dependent?dependent_id=${dependentPartyId}`, {
         method: 'PUT', headers,
-        body: JSON.stringify({
-          party_type: dependentFormData.party_type || 'Dependent',
-          party_relationship: dependentFormData.party_relationship || '',
-          first_name: dependentFormData.first_name || '',
-          middle_name: dependentFormData.middle_name || '',
-          last_name: dependentFormData.last_name || '',
-          date_of_birth: dependentFormData.date_of_birth || '',
-          ssn: dependentFormData.ssn || '',
-          city_of_birth: dependentFormData.city_of_birth || '',
-          country_of_birth: dependentFormData.country_of_birth || '',
-          country_of_citizenship: dependentFormData.country_of_citizenship || '',
-          assigned_user_id: dependentFormData.assigned_user_id || null,
-        })
-
+        body: JSON.stringify(payload)
       });
       if (!response.ok) throw new Error(`Failed: ${response.status}`);
       setDependentRecords(prev => prev.map((d, i) => i === selectedDependentIndex ? { ...d, ...dependentFormData } : d));
@@ -880,11 +1034,22 @@ const Employee = () => {
 
   // ── useEffect
   useEffect(() => {
-    console.log('=== useeffect running==');
+   
 
     const token = localStorage.getItem('authToken');
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const fetchCurrentUserRole = async () => {
+      try {
+        const response = await fetch(`${config.BASE_URL}/user/me`, { headers });
+        if (!response.ok) throw new Error(`Failed to fetch current user (${response.status})`);
+        const user = await response.json();
+        setIsAdmin(user.role?.toLowerCase() === 'admin');
+      } catch (err) {
+        console.error('Error fetching current user role:', err);
+      }
+    };
 
     const fetchUsers = async () => {
       try {
@@ -895,13 +1060,15 @@ const Employee = () => {
           label: user.username
         }));
         setUserOptions(options);
-        console.log('user options loaded:', options);
+      
         return options;
       } catch (err) {
-        console.error('Error fetching users:', err);
+       
         return [];
       }
     };
+
+    fetchCurrentUserRole();
 
 
 
@@ -909,21 +1076,21 @@ const Employee = () => {
 
     if (selectedEmployee) {
       const emp = JSON.parse(selectedEmployee);
-      console.log('editing employee:', emp);
+     
       setIsEditMode(true);
       setLastCreatedPartyId(emp.party_id);
       localStorage.setItem('lastCreatedPartyId', emp.party_id);
       localStorage.removeItem('selectedEmployee');
 
       fetchUsers().then(() => {
-        console.log('calling fetchPartyDetails:', emp.party_id);
+       
         fetchPartyDetails(emp.party_id);
       });
 
     } else if (localStorage.getItem('lastCreatedPartyId')) {
 
       const partyId = localStorage.getItem('lastCreatedPartyId');
-      console.log('refresh detected, reloading party:', partyId);
+     
       setIsEditMode(true);
       setLastCreatedPartyId(partyId);
       fetchUsers().then(() => {
@@ -964,22 +1131,13 @@ const Employee = () => {
 
 
   // ── Input Handlers
-  // const handleInputChange = (e) => { const { name, value } = e.target; setFormData({ ...formData, [name]: value }); };
-  { /*const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (['first_name', 'middle_name', 'last_name'].includes(name)) {
-      const filteredValue = value.replace(/[^A-Za-z\s'-]/g, '');
-      setFormData({ ...formData, [name]: filteredValue });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };*/}
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (['first_name', 'middle_name', 'last_name'].includes(name)) {
       const filteredValue = value.replace(/[^A-Za-z\s'-]/g, '');
       setFormData({ ...formData, [name]: filteredValue });
-    } else if (name === 'ssn') {
+    } else if (name === 'ssn_masked') {
 
       const digitsOnly = value.replace(/\D/g, '').slice(0, 9);
 
@@ -989,12 +1147,12 @@ const Employee = () => {
       } else if (digitsOnly.length > 3) {
         formatted = `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3)}`;
       }
-      setFormData({ ...formData, ssn: formatted });
+      setFormData({ ...formData, ssn_masked: formatted });
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
-  // const handleAddressInputChange = (e) => { const { name, value } = e.target; setAddressFormData({ ...addressFormData, [name]: value }); };
+
   const handleAddressInputChange = (e) => {
     const { name, value } = e.target;
     if (name === 'zipcode') {
@@ -1004,29 +1162,21 @@ const Employee = () => {
       setAddressFormData({ ...addressFormData, [name]: value });
     }
   };
-  /*const handleContactInputChange = (e) => { const { name, value } = e.target; setContactFormData({ ...contactFormData, [name]: value }); };*/
-  const handleContactInputChange = (e) => {
-  const { name, value } = e.target;
-  if (name === 'phone_number') {
-    // Allow only digits and an optional leading '+'
-    let filteredValue = value.replace(/[^0-9+\s]/g, '');
-    // Ensure '+' only appears once, and only at the very start
-    filteredValue = filteredValue.replace(/(?!^)\+/g, '');
-    setContactFormData({ ...contactFormData, [name]: filteredValue });
-  } else {
-    setContactFormData({ ...contactFormData, [name]: value });
-  }
-};
 
-  /* const handleBankInputChange = (e) => {
-     const { name, value } = e.target;
-     if (name === 'zip_code') {
-       const filteredValue = value.replace(/[^0-9]/g, '');
-       setBankFormData({ ...bankFormData, [name]: filteredValue });
-     } else {
-       setBankFormData({ ...bankFormData, [name]: value });
-     }
-   };*/
+  const handleContactInputChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'phone_number') {
+      // Allow only digits and an optional leading '+'
+      let filteredValue = value.replace(/[^0-9+\s]/g, '');
+      // Ensure '+' only appears once, and only at the very start
+      filteredValue = filteredValue.replace(/(?!^)\+/g, '');
+      setContactFormData({ ...contactFormData, [name]: filteredValue });
+    } else {
+      setContactFormData({ ...contactFormData, [name]: value });
+    }
+  };
+
+
   const handleBankInputChange = (e) => {
     const { name, value } = e.target;
     if (name === 'zip_code') {
@@ -1037,7 +1187,7 @@ const Employee = () => {
       const filteredValue = value.replace(/[^0-9]/g, '').slice(0, 12);
       setBankFormData({ ...bankFormData, [name]: filteredValue });
     } else if (name === 'routing_number') {
-      // Digits only, exactly 9 (US ABA routing number standard)
+      // Digits only, exactly 9
       const filteredValue = value.replace(/[^0-9]/g, '').slice(0, 9);
       setBankFormData({ ...bankFormData, [name]: filteredValue });
     } else {
@@ -1046,16 +1196,30 @@ const Employee = () => {
   };
   const handleEducationInputChange = (e) => { const { name, value } = e.target; setEducationFormData({ ...educationFormData, [name]: value }); };
   const handleExperienceInputChange = (e) => { const { name, value } = e.target; setExperienceFormData({ ...experienceFormData, [name]: value }); };
-  const handleClientInputChange = (e) => { const { name, value } = e.target; setClientFormData({ ...clientFormData, [name]: value }); };
+  const handleClientInputChange = (e) => {
+  const { name, value } = e.target;
+  if (name === 'client_manager_name') {
+    const filteredValue = value.replace(/[^\p{L}\s,-]/gu, '');
+    setClientFormData({ ...clientFormData, [name]: filteredValue });
+  } else if (name === 'client_manager_phone_number') {
+    // Allow digits, spaces, and an optional leading '+'
+    let filteredValue = value.replace(/[^0-9+\s]/g, '');
+    // '+' is only allowed as the very first character
+    filteredValue = filteredValue.replace(/(?!^)\+/g, '');
+    setClientFormData({ ...clientFormData, [name]: filteredValue });
+  } else {
+    setClientFormData({ ...clientFormData, [name]: value });
+  }
+};
   const handleImmigrationInputChange = (e) => { const { name, value } = e.target; setImmigrationFormData({ ...immigrationFormData, [name]: value }); };
   const handleVisaHistoryInputChange = (e) => { const { name, value } = e.target; setVisaHistoryFormData({ ...visaHistoryFormData, [name]: value }); };
-  // const handleDependentInputChange = (e) => { const { name, value } = e.target; setDependentFormData({ ...dependentFormData, [name]: value }); };
+
   const handleDependentInputChange = (e) => {
     const { name, value } = e.target;
     if (['first_name', 'middle_name', 'last_name'].includes(name)) {
       const filteredValue = value.replace(/[^A-Za-z\s'-]/g, '');
       setDependentFormData({ ...dependentFormData, [name]: filteredValue });
-    } else if (name === 'ssn') {
+    } else if (name === 'ssn_masked') {
 
       const digitsOnly = value.replace(/\D/g, '').slice(0, 9);
 
@@ -1065,30 +1229,30 @@ const Employee = () => {
       } else if (digitsOnly.length > 3) {
         formatted = `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3)}`;
       }
-      setDependentFormData({ ...dependentFormData, ssn: formatted });
+      setDependentFormData({ ...dependentFormData, ssn_masked: formatted });
     } else {
       setDependentFormData({ ...dependentFormData, [name]: value });
     }
   };
 
-  /*const handleDepContactInputChange = (e) => { const { name, value } = e.target; setDepContactFormData({ ...depContactFormData, [name]: value }); };*/
+
   const handleDepContactInputChange = (e) => {
-  const { name, value } = e.target;
-  if (name === 'phone_number') {
-    let filteredValue = value.replace(/[^0-9+\s]/g, '');
-    filteredValue = filteredValue.replace(/(?!^)\+/g, '');
-    setDepContactFormData({ ...depContactFormData, [name]: filteredValue });
-  } else {
-    setDepContactFormData({ ...depContactFormData, [name]: value });
-  }
-};
+    const { name, value } = e.target;
+    if (name === 'phone_number') {
+      let filteredValue = value.replace(/[^0-9+\s]/g, '');
+      filteredValue = filteredValue.replace(/(?!^)\+/g, '');
+      setDepContactFormData({ ...depContactFormData, [name]: filteredValue });
+    } else {
+      setDepContactFormData({ ...depContactFormData, [name]: value });
+    }
+  };
   const handleDepImmigrationInputChange = (e) => { const { name, value } = e.target; setDepImmigrationFormData({ ...depImmigrationFormData, [name]: value }); };
   const handleDepVisaHistoryInputChange = (e) => { const { name, value } = e.target; setDepVisaHistoryFormData({ ...depVisaHistoryFormData, [name]: value }); };
 
   // ── Submit Handlers
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.first_name || !formData.last_name || !formData.date_of_birth || !formData.ssn) {
+    if (!formData.first_name || !formData.last_name || !formData.date_of_birth || !formData.gender || !formData.ssn_masked) {
       alert('Please fill in all required fields.'); return;
     }
     try {
@@ -1096,25 +1260,44 @@ const Employee = () => {
       const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      console.log('Creating party with data:', JSON.stringify(formData));
-
-
+      const partyPayload = {
+        ...formData,
+        ssn: formData.ssn_masked,
+      };
       const response = await fetch(`${config.BASE_URL}/party/create-party`, {
-        method: 'POST', headers, body: JSON.stringify(formData)
+        method: 'POST', headers, body: JSON.stringify(partyPayload)
       });
       const responseText = await response.text();
 
-      console.log('response status:', response.status);
-      console.log('response body:', responseText);
-
-
-      if (!response.ok) throw new Error('Failed to save employee');
+     
+      if (!response.ok) {
+        let errorMessage = `Failed to save employee (${response.status})`;
+        try {
+          const errorData = JSON.parse(responseText);
+          if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail;
+          } else if (Array.isArray(errorData.detail)) {
+            const validationMessages = errorData.detail
+              .map(error => {
+                const field = Array.isArray(error.loc) ? error.loc.slice(1).join('.') : '';
+                return `${field ? `${field}: ` : ''}${error.msg || 'Invalid value'}`;
+              })
+              .filter(Boolean);
+            if (validationMessages.length) errorMessage = validationMessages.join('\n');
+          } else if (typeof errorData.message === 'string') {
+            errorMessage = errorData.message;
+          }
+        } catch {
+          if (responseText.trim()) errorMessage = responseText;
+        }
+        throw new Error(errorMessage);
+      }
       const result = JSON.parse(responseText);
       const partyId = result.party_id || result.id || result.partyId;
       setLastCreatedPartyId(partyId);
       localStorage.setItem('lastCreatedPartyId', partyId);
       setEmployees([...employees, { id: partyId, party_id: partyId, ...formData }]);
-      setFormData({ party_type: 'Employee', party_relationship: 'Self', first_name: '', middle_name: '', last_name: '', date_of_birth: '', ssn: '', party_joining_date: '', city_of_birth: '', country_of_birth: '', country_of_citizenship: '' });
+      setFormData({ party_type: 'Employee', party_relationship: 'Self', first_name: '', middle_name: '', last_name: '', gender: '', date_of_birth: '', ssn_masked: '', party_joining_date: '', city_of_birth: '', country_of_birth: '', country_of_citizenship: '' });
       alert('Employee saved successfully!');
     } catch (error) {
       alert(`Failed to save employee: ${error.message}`);
@@ -1136,7 +1319,7 @@ const Employee = () => {
       const result = await response.json();
       const newRecord = { ...bankFormData, party_id: partyId, bank_id: result.bank_id || result.id };
       setBankRecords(prev => [...prev, newRecord]);
-      setBankFormData({ bank_name: '', account_number: '', routing_number: '', bank_status: '', zip_code: '' });
+      setBankFormData({ bank_name: '', account_number: '', routing_number: '', account_type: '', bank_status: '', zip_code: '' });
       alert('Bank saved successfully!');
     } catch (error) {
       alert(`Failed: ${error.message}`);
@@ -1191,35 +1374,58 @@ const Employee = () => {
     }
   };
 
+
   const handleClientSubmit = async (e) => {
-    e.preventDefault();
-    const partyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
-    if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
-    try {
-      const token = localStorage.getItem('authToken');
-      const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const response = await fetch(`${config.BASE_URL}/client/Create-Client`, {
-        method: 'POST', headers, body: JSON.stringify({ ...clientFormData, party_id: partyId })
-      });
-      const responseText = await response.text();
-      if (!response.ok) throw new Error('Failed to save client');
-      const result = JSON.parse(responseText);
-      const newClientId = result.client_id;
-      if (newClientId) {
-        setLastCreatedClientId(newClientId);
-        localStorage.setItem('lastCreatedClientId', newClientId);
-        setAddressFormData(prev => ({ ...prev, client_id: newClientId }));
-      }
-      const newRecord = { ...clientFormData, party_id: partyId, client_id: newClientId };
-      setClientRecords(prev => [...prev, newRecord]);
-      setClientFormData({ client_name: '', party_client_joining_date: '' });
-      alert('Client saved successfully!');
-    } catch (error) {
-      alert(`Failed: ${error.message}`);
-      return false;
+  e.preventDefault();
+  const partyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
+  if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return false; }
+  try {
+    const token = localStorage.getItem('authToken');
+    const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const payload = {
+      party_id: partyId,
+      client_name: clientFormData.client_name,
+      party_client_joining_date: clientFormData.party_client_joining_date,
+      client_end_date: clientFormData.client_end_date || null,
+      ...(isAdmin && {
+        billing_rate: clientFormData.billing_rate === '' ? null : Number(clientFormData.billing_rate),
+      }),
+      client_manager_name: clientFormData.client_manager_name || null,
+      client_manager_email: clientFormData.client_manager_email || null,
+      client_manager_phone_number: clientFormData.client_manager_phone_number || null,
+    };
+
+    const response = await fetch(`${config.BASE_URL}/client/Create-Client`, {
+      method: 'POST', headers, body: JSON.stringify(payload)
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to save client (${response.status}): ${errorText}`);
     }
-  };
+
+    const result = await response.json();
+    const newClientId = result.client_id;
+    if (newClientId) {
+      setLastCreatedClientId(newClientId);
+      localStorage.setItem('lastCreatedClientId', newClientId);
+      setAddressFormData(prev => ({ ...prev, client_id: newClientId }));
+    }
+    const newRecord = { ...clientFormData, party_id: partyId, client_id: newClientId };
+    setClientRecords(prev => [...prev, newRecord]);
+    setClientFormData({
+      client_name: '', party_client_joining_date: '', client_end_date: '',
+      billing_rate: '',
+      client_manager_name: '', client_manager_email: '', client_manager_phone_number: '',
+    });
+    alert('Client saved successfully!');
+    return true;
+  } catch (error) {
+    alert(`Failed: ${error.message}`);
+    return false;
+  }
+};
 
   const handleExperienceSubmit = async (e) => {
     e.preventDefault();
@@ -1295,6 +1501,8 @@ const Employee = () => {
         current_status: immigrationFormData.current_status,
         status_requested: immigrationFormData.status_requested || null,
         current_status_expiration: immigrationFormData.current_status_expiration || null,
+        current_petition_start_date: immigrationFormData.current_petition_start_date || null,
+        current_petition_receipt_number: immigrationFormData.current_petition_receipt_number || null,
         consulate_city: immigrationFormData.consulate_city || null,
         consulate_country: immigrationFormData.consulate_country || null,
         i94_number: immigrationFormData.i94_number || null,
@@ -1306,7 +1514,7 @@ const Employee = () => {
         passport_expiration_date: immigrationFormData.passport_expiration_date || null,
         passport_place_of_issue: immigrationFormData.passport_place_of_issue || null,
       };
-      console.log('Party immigration create payload:', JSON.stringify(payload, null, 2));
+      
 
       const response = await fetch(`${config.BASE_URL}/immigration/`, {
         method: 'POST', headers, body: JSON.stringify(payload)
@@ -1321,7 +1529,7 @@ const Employee = () => {
       const result = await response.json();
       const newRecord = { ...immigrationFormData, party_id: partyId, immigration_id: result.immigration_id || result.id };
       setImmigrationRecords(prev => [...prev, newRecord]);
-      setImmigrationFormData({ current_status: '', status_requested: '', current_status_expiration: '', consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '', i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '', passport_expiration_date: '', passport_place_of_issue: '' });
+      setImmigrationFormData({ current_status: '', status_requested: '', current_status_expiration: '', current_petition_start_date: '', current_petition_receipt_number: '', consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '', i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '', passport_expiration_date: '', passport_place_of_issue: '' });
       alert('Immigration saved successfully!');
       return true;
     } catch (error) {
@@ -1347,7 +1555,7 @@ const Employee = () => {
         date_of_departure: visaHistoryFormData.date_of_departure || null,
         receipt_number: visaHistoryFormData.receipt_number,
       };
-      console.log('Party visa history create payload:', JSON.stringify(payload, null, 2));
+   
 
       const response = await fetch(`${config.BASE_URL}/visahistory/Create-Visa-History`, {
         method: 'POST', headers, body: JSON.stringify(payload)
@@ -1360,7 +1568,7 @@ const Employee = () => {
       }
 
       const result = await response.json();
-      console.log('Party visa history create result:', result);
+      
 
       const newRecord = { ...visaHistoryFormData, party_id: partyId, visa_id: result.visa_id || result.id };
       setVisaHistoryRecords(prev => [...prev, newRecord]);
@@ -1390,8 +1598,9 @@ const Employee = () => {
         ...dependentFormData,
         party_id: partyId,
         party_type: 'Dependent',
+        ssn: dependentFormData.ssn_masked,
       };
-      console.log('Dependent create payload:', JSON.stringify(payload, null, 2));
+    
 
       const response = await fetch(`${config.BASE_URL}/dependent/create-dependent`, {
         method: 'POST',
@@ -1406,7 +1615,7 @@ const Employee = () => {
       }
 
       const result = await response.json();
-      console.log('Dependent create result:', result);
+    
 
       const newDependentId = result.dependent_id || result.id;
 
@@ -1434,9 +1643,10 @@ const Employee = () => {
         party_relationship: '',
         first_name: '',
         middle_name: '',
+        gender: '',
         last_name: '',
         date_of_birth: '',
-        ssn: '',
+        ssn_masked: '',
         party_joining_date: '',
         city_of_birth: '',
         country_of_birth: '',
@@ -1514,6 +1724,8 @@ const Employee = () => {
         current_status: depImmigrationFormData.current_status || null,
         status_requested: depImmigrationFormData.status_requested || null,
         current_status_expiration: depImmigrationFormData.current_status_expiration || null,
+        current_petition_start_date: depImmigrationFormData.current_petition_start_date || null,
+        current_petition_receipt_number: depImmigrationFormData.current_petition_receipt_number || null,
         consulate_city: depImmigrationFormData.consulate_city || null,
         consulate_country: depImmigrationFormData.consulate_country || null,
         i94_number: depImmigrationFormData.i94_number || null,
@@ -1557,6 +1769,8 @@ const Employee = () => {
         current_status: depImmigrationFormData.current_status || null,
         status_requested: depImmigrationFormData.status_requested || null,
         current_status_expiration: depImmigrationFormData.current_status_expiration || null,
+        current_petition_start_date: depImmigrationFormData.current_petition_start_date || null,
+        current_petition_receipt_number: depImmigrationFormData.current_petition_receipt_number || null,
         consulate_city: depImmigrationFormData.consulate_city || null,
         consulate_country: depImmigrationFormData.consulate_country || null,
         i94_number: depImmigrationFormData.i94_number || null,
@@ -1597,7 +1811,7 @@ const Employee = () => {
         date_of_departure: depVisaHistoryFormData.date_of_departure || null,
         receipt_number: depVisaHistoryFormData.receipt_number,
       };
-      console.log('Dependent visa history create payload:', JSON.stringify(payload, null, 2));
+     
 
       const response = await fetch(`${config.BASE_URL}/visahistory/Create-Visa-History`, {
         method: 'POST', headers,
@@ -1781,16 +1995,29 @@ const Employee = () => {
                   <div><label style={labelStyle}>Middle Name</label><input type="text" name="middle_name" value={formData.middle_name} onChange={handleInputChange} style={isEditMode && !editableForms.party ? readOnlyStyle : inputStyle} disabled={isEditMode && !editableForms.party} pattern="[A-Za-z\s'-]+" title="Only letters, spaces, hyphens and apostrophes are allowed" /></div>
                   <div><label style={labelStyle}>Last Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="last_name" value={formData.last_name} onChange={handleInputChange} style={isEditMode && !editableForms.party ? readOnlyStyle : inputStyle} disabled={isEditMode && !editableForms.party} pattern="[A-Za-z\s'-]+" title="Only letters, spaces, hyphens and apostrophes are allowed" required /></div>
                 </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <div>
+                    <label style={labelStyle}>Gender <span style={{ color: 'red' }}>*</span></label>
+                    <select name="gender" value={formData.gender} onChange={handleInputChange} style={isEditMode && !editableForms.party ? readOnlyStyle : inputStyle} disabled={isEditMode && !editableForms.party} required>
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+
+                    </select>
+                  </div>
+
                   <div><label style={labelStyle}>Date of Birth <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleInputChange} style={isEditMode && !editableForms.party ? readOnlyStyle : inputStyle} disabled={isEditMode && !editableForms.party} max={today} required /></div>
 
                   <div>
                     <label style={labelStyle}>SSN <span style={{ color: 'red' }}>*</span></label>
                     <div style={{ position: 'relative' }}>
                       <input
-                        type={showSSN ? 'text' : 'password'}
-                        name="ssn"
-                        value={formData.ssn}
+                        type="text"
+                        name="ssn_masked"
+                        value={isEditMode && !editableForms.party && !showSSN
+                          ? getMaskedSsn(formData.ssn_masked)
+                          : formData.ssn_masked}
                         onChange={handleInputChange}
                         style={{ ...(isEditMode && !editableForms.party ? readOnlyStyle : inputStyle), paddingRight: '2.5rem' }}
                         disabled={isEditMode && !editableForms.party}
@@ -1799,17 +2026,17 @@ const Employee = () => {
                         required
                       />
                       <span
-                        onClick={() => setShowSSN(!showSSN)}
+                        onClick={handlePartySsnToggle}
                         style={{
                           position: 'absolute',
                           right: '0.75rem',
                           top: '50%',
                           transform: 'translateY(-50%)',
-                          cursor: 'pointer',
+                          cursor: isLoadingPartySSN ? 'wait' : 'pointer',
                           fontSize: '1.1rem',
                           userSelect: 'none',
                         }}
-                        title={showSSN ? 'Hide SSN' : 'Show SSN'}
+                        title={isLoadingPartySSN ? 'Loading SSN' : showSSN ? 'Hide SSN' : 'Show SSN'}
                       >
                         {showSSN ? '🙈' : '👁️'}
                       </span>
@@ -1817,42 +2044,42 @@ const Employee = () => {
                   </div>
                 </div>
 
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={labelStyle}>Username <span style={{ color: 'red' }}>*</span></label>
-                  {isEditMode && !editableForms.party ? (
+                {isAdmin && (
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <label style={labelStyle}>Username <span style={{ color: 'red' }}>*</span></label>
+                    {isEditMode && !editableForms.party ? (
+                      <input
+                        type="text"
+                        value={userOptions.find(u => u.value === formData.assigned_user_id)?.label || formData.assigned_user_id || ''}
+                        style={readOnlyStyle}
+                        readOnly disabled />
+                    ) : (
+                      <Select
+                        options={userOptions}
+                        placeholder="Search Username..."
+                        isSearchable
+                        value={userOptions.find(u => u.value === formData.assigned_user_id) || null}
+                        onChange={(selectedOption) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            assigned_user_id: selectedOption ? selectedOption.value : ''
+                          }));
+                        }}
+                        styles={{
+                          control: (base) => ({
+                            ...base,
+                            padding: '0.2rem',
+                            borderColor: '#ced4da',
+                            fontSize: '1rem',
+                          })
+                        }}
+                      />
+                    )}
+                  </div>
+                )}
 
-                    <input
-                      type="text"
-                      value={userOptions.find(u => u.value === formData.assigned_user_id)?.label || formData.assigned_user_id || ''}
-                      style={readOnlyStyle}
-                      readOnly disabled />
-                  ) : (
-       
-                    <Select
-                      options={userOptions}
-                      placeholder="Search Username..."
-                      isSearchable
-                      value={userOptions.find(u => u.value === formData.assigned_user_id) || null}
-                      onChange={(selectedOption) => {
-                        setFormData(prev => ({
-                          ...prev,
-                          assigned_user_id: selectedOption ? selectedOption.value : ''
-                        }));
-                      }}
-                      styles={{
-                        control: (base) => ({
-                          ...base,
-                          padding: '0.2rem',
-                          borderColor: '#ced4da',
-                          fontSize: '1rem',
-                        })
-                      }}
-                    />
-                  )}
-                </div>
-
                 <div style={{ marginBottom: '1.5rem' }}>
-                  
+
                   <div style={{ marginBottom: '1.5rem' }}>
                     <label style={labelStyle}>Party Joining Date <span style={{ color: 'red' }}>*</span></label>
                     <input type="date" name="party_joining_date" value={formData.party_joining_date} onChange={handleInputChange} style={isEditMode && !editableForms.party ? readOnlyStyle : inputStyle} disabled={isEditMode && !editableForms.party} max={today} required />
@@ -1895,13 +2122,14 @@ const Employee = () => {
                   setSelectedBankIndex(index);
                   setShowAddBank(false);
                   setBankId(record.bank_id);
-                  setBankFormData({ bank_name: record.bank_name || '', account_number: record.account_number || '', routing_number: record.routing_number || '', bank_status: record.bank_status || '', zip_code: record.zip_code || '' });
+                  setBankFormData({ bank_name: record.bank_name || '', account_number: record.account_number || '', routing_number: record.routing_number || '', account_type: record.account_type || '', bank_status: record.bank_status || '', zip_code: record.zip_code || '' });
                   setEditableForms(prev => ({ ...prev, bank: false }));
                 }}
                 columns={[
                   { label: 'Bank Name', key: 'bank_name' },
                   { label: 'Account Number', key: 'account_number' },
                   { label: 'Routing Number', key: 'routing_number' },
+                  { label: 'Account Type', key: 'account_type' },
                   { label: 'Status', key: 'bank_status' },
                   { label: 'Zip Code', key: 'zip_code' },
                 ]}
@@ -1916,7 +2144,7 @@ const Employee = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      setBankFormData({ bank_name: '', account_number: '', routing_number: '', bank_status: '', zip_code: '' });
+                      setBankFormData({ bank_name: '', account_number: '', routing_number: '', account_type: '', bank_status: '', zip_code: '' });
                       setSelectedBankIndex(null);
                       setShowAddBank(true);
                     }}
@@ -1939,6 +2167,7 @@ const Employee = () => {
                       <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Bank Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="bank_name" value={bankFormData.bank_name} onChange={handleBankInputChange} style={inputStyle} required /></div>
                       <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Account Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="account_number" value={bankFormData.account_number} onChange={handleBankInputChange} style={inputStyle} inputMode="numeric" pattern="[0-9]{8-12}" maxLength={12} required /></div>
                       <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Routing Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="routing_number" value={bankFormData.routing_number} onChange={handleBankInputChange} style={inputStyle} inputMode="numeric" pattern="[0-9]{9}" maxLength={9} title="Routing number must be exactly 9 digits" required /></div>
+                      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Account Type <span style={{ color: 'red' }}>*</span></label><select name="account_type" value={bankFormData.account_type} onChange={handleBankInputChange} style={inputStyle} required><option value="">Select Account Type</option><option value="Savings">Savings</option><option value="Checking">Checking</option></select></div>
                       <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Bank Status</label><select name="bank_status" value={bankFormData.bank_status} onChange={handleBankInputChange} style={inputStyle}><option value="">Select Status</option><option value="Active">Active</option><option value="Inactive">Inactive</option><option value="Pending">Pending</option></select></div>
                       { /* <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Zip Code</label><input type="text" name="zip_code" value={bankFormData.zip_code} onChange={handleBankInputChange} style={inputStyle} /></div>*/}
                       <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Zip Code</label><input type="text" name="zip_code" value={bankFormData.zip_code} onChange={handleBankInputChange} style={inputStyle} maxLength={10} /></div>
@@ -1962,6 +2191,7 @@ const Employee = () => {
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Bank Name<span style={{ color: 'red' }}>*</span></label><input type="text" name="bank_name" value={bankFormData.bank_name} onChange={handleBankInputChange} style={!editableForms.bank ? readOnlyStyle : inputStyle} disabled={!editableForms.bank} required /></div>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Account Number<span style={{ color: 'red' }}>*</span></label><input type="text" name="account_number" value={bankFormData.account_number} onChange={handleBankInputChange} style={!editableForms.bank ? readOnlyStyle : inputStyle} disabled={!editableForms.bank} inputMode="numeric" pattern="[0-9]{8-12}" maxLength={12} required /></div>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Routing Number<span style={{ color: 'red' }}>*</span></label><input type="text" name="routing_number" value={bankFormData.routing_number} onChange={handleBankInputChange} style={!editableForms.bank ? readOnlyStyle : inputStyle} disabled={!editableForms.bank} inputMode="numeric" pattern="[0-9]{9}" maxLength={9} title="Routing number must be exactly 9 digits" required /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Account Type <span style={{ color: 'red' }}>*</span></label><select name="account_type" value={bankFormData.account_type} onChange={handleBankInputChange} style={!editableForms.bank ? readOnlyStyle : inputStyle} disabled={!editableForms.bank} required><option value="">Select Account Type</option><option value="Savings">Savings</option><option value="Checking">Checking</option></select></div>
                     <div style={{ marginBottom: '1rem' }}>
                       <label style={labelStyle}>Bank Status</label>
                       <select name="bank_status" value={bankFormData.bank_status} onChange={handleBankInputChange} style={!editableForms.bank ? readOnlyStyle : inputStyle} disabled={!editableForms.bank}>
@@ -2024,7 +2254,7 @@ const Employee = () => {
 
                     <form onSubmit={async (e) => { const success = await handleContactSubmit(e); if (success) setShowAddContact(false); }} style={{ maxWidth: '600px' }}>
 
-                      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Phone Number <span style={{ color: 'red' }}>*</span></label><input type="tel" name="phone_number" value={contactFormData.phone_number} onChange={handleContactInputChange} style={inputStyle} maxLength={15}  pattern="^\+?[0-9\s]+$" placeholder="e.g. +1 1234567890 " title="Only numbers and an optional leading + are allowed" required /></div>
+                      <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Phone Number <span style={{ color: 'red' }}>*</span></label><input type="tel" name="phone_number" value={contactFormData.phone_number} onChange={handleContactInputChange} style={inputStyle} maxLength={15} pattern="^\+?[0-9\s]+$" placeholder="e.g. +1 1234567890 " title="Only numbers and an optional leading + are allowed" required /></div>
                       <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Email <span style={{ color: 'red' }}>*</span></label><input type="email" name="email" value={contactFormData.email} onChange={handleContactInputChange} style={inputStyle} pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Please enter a valid email address (e.g. name@example.com)" required /></div>
                       <button type="submit" style={buttonStyle}>Save Contact</button>
                     </form>
@@ -2040,7 +2270,7 @@ const Employee = () => {
                     <button type="button" onClick={() => setEditableForms(prev => ({ ...prev, contact: !prev.contact }))} style={{ padding: '0.4rem 1rem', backgroundColor: editableForms.contact ? '#dc3545' : '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>{editableForms.contact ? '✕ Cancel' : '✏️ Edit'}</button>
                   </div>
                   <form onSubmit={handleUpdateContact} style={{ maxWidth: '600px' }}>
-                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Phone Number <span style={{ color: 'red' }}>*</span> </label><input type="tel" name="phone_number" value={contactFormData.phone_number} onChange={handleContactInputChange} style={!editableForms.contact ? readOnlyStyle : inputStyle} disabled={!editableForms.contact} maxLength={15} pattern="^[0-9+\s]+$" placeholder="e.g. +1 1234567890"  title="Only numbers, spaces, and an optional leading + are allowed" required /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Phone Number <span style={{ color: 'red' }}>*</span> </label><input type="tel" name="phone_number" value={contactFormData.phone_number} onChange={handleContactInputChange} style={!editableForms.contact ? readOnlyStyle : inputStyle} disabled={!editableForms.contact} maxLength={15} pattern="^[0-9+\s]+$" placeholder="e.g. +1 1234567890" title="Only numbers, spaces, and an optional leading + are allowed" required /></div>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Email <span style={{ color: 'red' }}>*</span></label><input type="email" name="email" value={contactFormData.email} onChange={handleContactInputChange} style={!editableForms.contact ? readOnlyStyle : inputStyle} disabled={!editableForms.contact} pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Please enter a valid email address (e.g. name@example.com)" required /></div>
                     {editableForms.contact && <button type="submit" style={buttonStyle}>Update Contact</button>}
                   </form>
@@ -2129,17 +2359,33 @@ const Employee = () => {
                   setSelectedClientIndex(index);
                   setShowAddClient(false);
                   setClientId(record.client_id);
-                  setClientFormData({ client_name: record.client_name || '', party_client_joining_date: record.party_client_joining_date || '' });
+                  setClientFormData({
+                    client_name: record.client_name || '',
+                    party_client_joining_date: record.party_client_joining_date || '',
+                    client_end_date: record.client_end_date || '',
+                    billing_rate: record.billing_rate ?? record.billingRate ?? '',
+                    client_manager_name: record.client_manager_name || '',
+                    client_manager_email: record.client_manager_email || '',
+                    client_manager_phone_number: record.client_manager_phone_number || '',
+                  });
                   setEditableForms(prev => ({ ...prev, client: false }));
                 }}
                 columns={[
                   { label: 'Client Name', key: 'client_name' },
                   { label: 'Joining Date', key: 'party_client_joining_date' },
+                  { label: 'Client End Date', key: 'client_end_date' },
+                  { label: 'Client Manager', key: 'client_manager_name' },
+                  { label: 'Manager Email', key: 'client_manager_email' },
+                  { label: 'Manager Phone', key: 'client_manager_phone_number' },
                 ]}
               />
 
               {!showAddClient ? (
-                <button type="button" onClick={() => { setClientFormData({ client_name: '', party_client_joining_date: '' }); setSelectedClientIndex(null); setShowAddClient(true); }}
+                <button type="button" onClick={() => { setClientFormData({
+                  client_name: '', party_client_joining_date: '', client_end_date: '',
+                  billing_rate: '',
+                  client_manager_name: '', client_manager_email: '', client_manager_phone_number: '',
+                }); setSelectedClientIndex(null); setShowAddClient(true); }}
                   style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginBottom: '10px' }}>
                   + Add New Client
                 </button>
@@ -2154,6 +2400,37 @@ const Employee = () => {
 
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="client_name" value={clientFormData.client_name} onChange={handleClientInputChange} style={inputStyle} required /></div>
                     <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}> Client Joining Date <span style={{ color: 'red' }}>*</span></label><input type="date" name="party_client_joining_date" value={clientFormData.party_client_joining_date} onChange={handleClientInputChange} style={inputStyle} max={today} required /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client End Date</label><input type="date" name="client_end_date" value={clientFormData.client_end_date} onChange={handleClientInputChange} style={inputStyle} /></div>
+                    {isAdmin && <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Billing Rate</label><input type="number" name="billing_rate" value={clientFormData.billing_rate} onChange={handleClientInputChange} style={inputStyle} min="0" step="0.01" /></div>}
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client Manager Name</label><input type="text" name="client_manager_name" value={clientFormData.client_manager_name} onChange={handleClientInputChange} style={inputStyle} /></div>
+                  { /* <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client Manager Email</label><input type="email" name="client_manager_email" value={clientFormData.client_manager_email} onChange={handleClientInputChange} style={inputStyle} /></div>*/}
+                  <div style={{ marginBottom: '1rem' }}>
+  <label style={labelStyle}>Client Manager Email</label>
+  <input
+    type="email"
+    name="client_manager_email"
+    value={clientFormData.client_manager_email}
+    onChange={handleClientInputChange}
+    style={inputStyle}
+    placeholder="e.g. name@example.com"
+    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    title="Please enter a valid email address (e.g. name@example.com)"
+  />
+</div>
+                    <div style={{ marginBottom: '1.5rem' }}>
+  <label style={labelStyle}>Client Manager Phone Number</label>
+  <input
+    type="tel"
+    name="client_manager_phone_number"
+    value={clientFormData.client_manager_phone_number}
+    onChange={handleClientInputChange}
+    style={inputStyle}
+    placeholder="e.g. +1 6785435678"
+    maxLength={15}
+    pattern="^\+?[0-9\s]+$"
+    title="Only numbers, spaces, and an optional leading + are allowed"
+  />
+</div>
                     <button type="submit" style={buttonStyle}>Save Client</button>
                   </form>
                 </div>
@@ -2169,6 +2446,39 @@ const Employee = () => {
                   <form onSubmit={handleUpdateClient} style={{ maxWidth: '600px' }}>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="client_name" value={clientFormData.client_name} onChange={handleClientInputChange} style={!editableForms.client ? readOnlyStyle : inputStyle} disabled={!editableForms.client} required /></div>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}> Client Joining Date <span style={{ color: 'red' }}>*</span></label><input type="date" name="party_client_joining_date" value={clientFormData.party_client_joining_date} onChange={handleClientInputChange} style={!editableForms.client ? readOnlyStyle : inputStyle} disabled={!editableForms.client} max={today} required /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client End Date</label><input type="date" name="client_end_date" value={clientFormData.client_end_date} onChange={handleClientInputChange} style={!editableForms.client ? readOnlyStyle : inputStyle} disabled={!editableForms.client} /></div>
+                    {isAdmin && <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Billing Rate</label><input type="number" name="billing_rate" value={clientFormData.billing_rate} onChange={handleClientInputChange} style={!editableForms.client ? readOnlyStyle : inputStyle} disabled={!editableForms.client} min="0" step="0.01" /></div>}
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client Manager Name</label><input type="text" name="client_manager_name" value={clientFormData.client_manager_name} onChange={handleClientInputChange} style={!editableForms.client ? readOnlyStyle : inputStyle} disabled={!editableForms.client} /></div>
+                   { /*<div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client Manager Email</label><input type="email" name="client_manager_email" value={clientFormData.client_manager_email} onChange={handleClientInputChange} style={!editableForms.client ? readOnlyStyle : inputStyle} disabled={!editableForms.client} /></div>*/}
+                   <div style={{ marginBottom: '1rem' }}>
+  <label style={labelStyle}>Client Manager Email</label>
+  <input
+    type="email"
+    name="client_manager_email"
+    value={clientFormData.client_manager_email}
+    onChange={handleClientInputChange}
+    style={!editableForms.client ? readOnlyStyle : inputStyle}
+    disabled={!editableForms.client}
+    placeholder="e.g. name@example.com"
+    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    title="Please enter a valid email address (e.g. name@example.com)"
+  />
+</div>
+                  <div style={{ marginBottom: '1rem' }}>
+  <label style={labelStyle}>Client Manager Phone Number</label>
+  <input
+    type="tel"
+    name="client_manager_phone_number"
+    value={clientFormData.client_manager_phone_number}
+    onChange={handleClientInputChange}
+    style={!editableForms.client ? readOnlyStyle : inputStyle}
+    disabled={!editableForms.client}
+    placeholder="e.g. +1 6785435678"
+    maxLength={15}
+    pattern="^\+?[0-9\s]+$"
+    title="Only numbers, spaces, and an optional leading + are allowed"
+  />
+</div>
                     {editableForms.client && <button type="submit" style={buttonStyle}>Update Client</button>}
                   </form>
                 </div>
@@ -2290,10 +2600,9 @@ const Employee = () => {
                     <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Address</h3>
                     <button type="button" onClick={() => setShowAddAddress(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
                   </div>
-                  { /* <form onSubmit={async (e) => { await handleAddressSubmit(e); setShowAddAddress(false); }} style={{ maxWidth: '600px' }}>*/}
+                  
                   <form onSubmit={async (e) => { const success = await handleAddressSubmit(e); if (success) setShowAddAddress(false); }} style={{ maxWidth: '600px' }}>
 
-                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client ID</label><input type="text" value={addressFormData.client_id} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Type</label><select name="address_type" value={addressFormData.address_type} onChange={handleAddressInputChange} style={inputStyle}><option value="">Select</option><option value="Home">Home</option><option value="Work">Work</option><option value="Mailing">Mailing</option></select></div>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 1 <span style={{ color: 'red' }}>*</span></label><input type="text" name="address_line_1" value={addressFormData.address_line_1} onChange={handleAddressInputChange} style={inputStyle} required /></div>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 2</label><input type="text" name="address_line_2" value={addressFormData.address_line_2} onChange={handleAddressInputChange} style={inputStyle} /></div>
@@ -2303,9 +2612,9 @@ const Employee = () => {
                       <div><label style={labelStyle}>State <span style={{ color: 'red' }}>*</span></label><input type="text" name="state" value={addressFormData.state} onChange={handleAddressInputChange} style={inputStyle} required /></div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                      { /* <div><label style={labelStyle}>Zip Code <span style={{ color: 'red' }}>*</span></label><input type="text" name="zipcode" value={addressFormData.zipcode} onChange={handleAddressInputChange} style={inputStyle} required /></div>*/}
+                     
                       <div><label style={labelStyle}>Zip Code <span style={{ color: 'red' }}>*</span></label><input type="text" name="zipcode" value={addressFormData.zipcode} onChange={handleAddressInputChange} style={inputStyle} maxLength={10} required /></div>
-                      { /*<div><label style={labelStyle}>Country</label><input type="text" name="country" value={addressFormData.country} onChange={handleAddressInputChange} style={inputStyle} /></div>*/}
+                    
                       <div>
                         <label style={labelStyle}>Country</label>
                         <select name="country" value={addressFormData.country} onChange={handleAddressInputChange} style={inputStyle}>
@@ -2328,7 +2637,6 @@ const Employee = () => {
                     <button type="button" onClick={() => setEditableForms(prev => ({ ...prev, address: !prev.address }))} style={{ padding: '0.4rem 1rem', backgroundColor: editableForms.address ? '#dc3545' : '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>{editableForms.address ? '✕ Cancel' : '✏️ Edit'}</button>
                   </div>
                   <form onSubmit={handleUpdateAddress} style={{ maxWidth: '600px' }}>
-                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Client ID</label><input type="text" name="client_id" value={addressFormData.client_id} onChange={handleAddressInputChange} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Type</label><select name="address_type" value={addressFormData.address_type} onChange={handleAddressInputChange} style={!editableForms.address ? readOnlyStyle : inputStyle} disabled={!editableForms.address}><option value="">Select Address Type</option><option value="Home">Home</option><option value="Work">Work</option><option value="Mailing">Mailing</option></select></div>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 1 <span style={{ color: 'red' }}>*</span></label><input type="text" name="address_line_1" value={addressFormData.address_line_1} onChange={handleAddressInputChange} style={!editableForms.address ? readOnlyStyle : inputStyle} disabled={!editableForms.address} required /></div>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Address Line 2</label><input type="text" name="address_line_2" value={addressFormData.address_line_2} onChange={handleAddressInputChange} style={!editableForms.address ? readOnlyStyle : inputStyle} disabled={!editableForms.address} /></div>
@@ -2338,7 +2646,7 @@ const Employee = () => {
                       <div><label style={labelStyle}>State <span style={{ color: 'red' }}>*</span></label><input type="text" name="state" value={addressFormData.state} onChange={handleAddressInputChange} style={!editableForms.address ? readOnlyStyle : inputStyle} disabled={!editableForms.address} required /></div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                      { /* <div><label style={labelStyle}>Zip Code</label><input type="text" name="zipcode" value={addressFormData.zipcode} onChange={handleAddressInputChange} style={!editableForms.address ? readOnlyStyle : inputStyle} disabled={!editableForms.address} /></div>*/}
+                      
                       <div><label style={labelStyle}>Zip Code <span style={{ color: 'red' }}>*</span></label><input type="text" name="zipcode" value={addressFormData.zipcode} onChange={handleAddressInputChange} style={!editableForms.address ? readOnlyStyle : inputStyle} disabled={!editableForms.address} maxLength={10} required /></div>
                       <div>
                         <label style={labelStyle}>Country</label>
@@ -2370,19 +2678,21 @@ const Employee = () => {
                   setSelectedImmigrationIndex(index);
                   setShowAddImmigration(false);
                   setImmigrationId(record.immigration_id);
-                  setImmigrationFormData({ current_status: record.current_status || '', status_requested: record.status_requested || '', current_status_expiration: record.current_status_expiration || '', consulate_city: record.consulate_city || '', consulate_country: record.consulate_country || '', i94_number: record.i94_number || '', i94_issue_date: record.i94_issue_date || '', i94_expiration: record.i94_expiration || '', last_arrival_date: record.last_arrival_date || '', passport_number: record.passport_number || '', passport_issue_date: record.passport_issue_date || '', passport_expiration_date: record.passport_expiration_date || '', passport_place_of_issue: record.passport_place_of_issue || '' });
+                  setImmigrationFormData({ current_status: record.current_status || '', status_requested: record.status_requested || '', current_status_expiration: record.current_status_expiration || '', current_petition_start_date: record.current_petition_start_date || '', current_petition_receipt_number: record.current_petition_receipt_number || '', consulate_city: record.consulate_city || '', consulate_country: record.consulate_country || '', i94_number: record.i94_number || '', i94_issue_date: record.i94_issue_date || '', i94_expiration: record.i94_expiration || '', last_arrival_date: record.last_arrival_date || '', passport_number: record.passport_number || '', passport_issue_date: record.passport_issue_date || '', passport_expiration_date: record.passport_expiration_date || '', passport_place_of_issue: record.passport_place_of_issue || '' });
                   setEditableForms(prev => ({ ...prev, immigration: false }));
                 }}
                 columns={[
                   { label: 'Current Status', key: 'current_status' },
                   { label: 'Status Requested', key: 'status_requested' },
+                  { label: 'Current Petition Start Date', key: 'current_petition_start_date' },
+                  { label: 'Current Petition Receipt Number', key: 'current_petition_receipt_number' },
                   { label: 'Passport Number', key: 'passport_number' },
                   { label: 'Expiration Date', key: 'passport_expiration_date' },
                 ]}
               />
 
               {!showAddImmigration ? (
-                <button type="button" onClick={() => { setImmigrationFormData({ current_status: '', status_requested: '', current_status_expiration: '', consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '', i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '', passport_expiration_date: '', passport_place_of_issue: '' }); setSelectedImmigrationIndex(null); setShowAddImmigration(true); }}
+                <button type="button" onClick={() => { setImmigrationFormData({ current_status: '', status_requested: '', current_status_expiration: '', current_petition_start_date: '', current_petition_receipt_number: '', consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '', i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '', passport_expiration_date: '', passport_place_of_issue: '' }); setSelectedImmigrationIndex(null); setShowAddImmigration(true); }}
                   style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginBottom: '10px' }}>
                   + Add New Immigration
                 </button>
@@ -2399,7 +2709,9 @@ const Employee = () => {
                       <div><label style={labelStyle}>Immigration Status <span style={{ color: 'red' }}>*</span></label><input type="text" name="current_status" value={immigrationFormData.current_status} onChange={handleImmigrationInputChange} style={inputStyle} required /></div>
                       <div><label style={labelStyle}>Status Requested</label><input type="text" name="status_requested" value={immigrationFormData.status_requested} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
                     </div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Petition Start Date</label><input type="date" name="current_petition_start_date" value={immigrationFormData.current_petition_start_date} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Petition End Date</label><input type="date" name="current_status_expiration" value={immigrationFormData.current_status_expiration} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Petition Receipt Number</label><input type="text" name="current_petition_receipt_number" value={immigrationFormData.current_petition_receipt_number} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                       <div><label style={labelStyle}>Consulate City</label><input type="text" name="consulate_city" value={immigrationFormData.consulate_city} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
                       <div><label style={labelStyle}>Consulate Country</label><input type="text" name="consulate_country" value={immigrationFormData.consulate_country} onChange={handleImmigrationInputChange} style={inputStyle} /></div>
@@ -2434,7 +2746,9 @@ const Employee = () => {
                       <div><label style={labelStyle}>Immigration Status <span style={{ color: 'red' }}>*</span></label><input type="text" name="current_status" value={immigrationFormData.current_status} onChange={handleImmigrationInputChange} style={!editableForms.immigration ? readOnlyStyle : inputStyle} disabled={!editableForms.immigration} required /></div>
                       <div><label style={labelStyle}>Status Requested</label><input type="text" name="status_requested" value={immigrationFormData.status_requested} onChange={handleImmigrationInputChange} style={!editableForms.immigration ? readOnlyStyle : inputStyle} disabled={!editableForms.immigration} /></div>
                     </div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Petition Start Date</label><input type="date" name="current_petition_start_date" value={immigrationFormData.current_petition_start_date} onChange={handleImmigrationInputChange} style={!editableForms.immigration ? readOnlyStyle : inputStyle} disabled={!editableForms.immigration} /></div>
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Petition End Date</label><input type="date" name="current_status_expiration" value={immigrationFormData.current_status_expiration} onChange={handleImmigrationInputChange} style={!editableForms.immigration ? readOnlyStyle : inputStyle} disabled={!editableForms.immigration} /></div>
+                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Petition Receipt Number</label><input type="text" name="current_petition_receipt_number" value={immigrationFormData.current_petition_receipt_number} onChange={handleImmigrationInputChange} style={!editableForms.immigration ? readOnlyStyle : inputStyle} disabled={!editableForms.immigration} /></div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                       <div><label style={labelStyle}>Consulate City</label><input type="text" name="consulate_city" value={immigrationFormData.consulate_city} onChange={handleImmigrationInputChange} style={!editableForms.immigration ? readOnlyStyle : inputStyle} disabled={!editableForms.immigration} /></div>
                       <div><label style={labelStyle}>Consulate Country</label><input type="text" name="consulate_country" value={immigrationFormData.consulate_country} onChange={handleImmigrationInputChange} style={!editableForms.immigration ? readOnlyStyle : inputStyle} disabled={!editableForms.immigration} /></div>
@@ -2496,7 +2810,7 @@ const Employee = () => {
                     <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Visa History</h3>
                     <button type="button" onClick={() => setShowAddVisa(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
                   </div>
-                 
+
                   <form onSubmit={async (e) => { const success = await handleVisaHistorySubmit(e); if (success) setShowAddVisa(false); }} style={{ maxWidth: '600px' }}>
 
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Visa Type <span style={{ color: 'red' }}>*</span></label><input type="text" name="visa_type" value={visaHistoryFormData.visa_type} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
@@ -2504,7 +2818,6 @@ const Employee = () => {
                       <div><label style={labelStyle}>Date of Arrival <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_arrival" value={visaHistoryFormData.date_of_arrival} onChange={handleVisaHistoryInputChange} style={inputStyle} max={today} required /></div>
                       <div><label style={labelStyle}>Date of Departure</label><input type="date" name="date_of_departure" value={visaHistoryFormData.date_of_departure} onChange={handleVisaHistoryInputChange} style={inputStyle} max={today} /></div>
                     </div>
-                    <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Receipt Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="receipt_number" value={visaHistoryFormData.receipt_number} onChange={handleVisaHistoryInputChange} style={inputStyle} required /></div>
                     <button type="submit" style={buttonStyle}>Save Visa History</button>
                   </form>
                 </div>
@@ -2524,7 +2837,6 @@ const Employee = () => {
                       <div><label style={labelStyle}>Date of Arrival <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_arrival" value={visaHistoryFormData.date_of_arrival} onChange={handleVisaHistoryInputChange} style={!editableForms.visaHistory ? readOnlyStyle : inputStyle} disabled={!editableForms.visaHistory} max={today} required /></div>
                       <div><label style={labelStyle}>Date of Departure</label><input type="date" name="date_of_departure" value={visaHistoryFormData.date_of_departure} onChange={handleVisaHistoryInputChange} style={!editableForms.visaHistory ? readOnlyStyle : inputStyle} disabled={!editableForms.visaHistory} max={today} /></div>
                     </div>
-                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Receipt Number<span style={{ color: 'red' }}>*</span></label><input type="text" name="receipt_number" value={visaHistoryFormData.receipt_number} onChange={handleVisaHistoryInputChange} style={!editableForms.visaHistory ? readOnlyStyle : inputStyle} disabled={!editableForms.visaHistory} required /></div>
                     {editableForms.visaHistory && <button type="submit" style={buttonStyle}>Update Visa History</button>}
                   </form>
                 </div>
@@ -2551,6 +2863,7 @@ const Employee = () => {
                   onSelect={(index, record) => {
                     setSelectedDependentIndex(index);
                     setShowAddDependent(false);
+                    setShowDepSSN(false);
                     setDependentPartyId(record.dependent_id);
                     setDependentFormData({
                       party_type: record.party_type || 'Dependent',
@@ -2558,11 +2871,12 @@ const Employee = () => {
                       first_name: record.first_name || '',
                       middle_name: record.middle_name || '',
                       last_name: record.last_name || '',
+                      gender: record.gender || '',
                       date_of_birth: record.date_of_birth || '',
-                      ssn: record.ssn || '',
+                      ssn_masked: record.ssn_masked || '',
                       party_joining_date: record.party_joining_date || '',
                       city_of_birth: record.city_of_birth || '',
-                      country_of_birth: record.country_of_birth || '',
+                      country_of_birth: record.country_of_birth || '',  
                       country_of_citizenship: record.country_of_citizenship || '',
                     });
                     setEditableForms(prev => ({ ...prev, dependent: false }));
@@ -2572,11 +2886,108 @@ const Employee = () => {
                     { label: 'First Name', key: 'first_name' },
                     { label: 'Last Name', key: 'last_name' },
                     { label: 'Relationship', key: 'party_relationship' },
+                    { label: 'Gender', key: 'gender' },
                     { label: 'Date of Birth', key: 'date_of_birth' },
                   ]}
                 />
               )}
 
+              {(selectedDependentIndex === null || dependentSubTab === 'personal') && (
+                <>
+                  {!showAddDependent ? (
+                    <button type="button"
+                      onClick={() => {
+                        setDependentFormData({
+                          party_type: 'Dependent', party_relationship: '', first_name: '', middle_name: '',
+                          gender: '', last_name: '', date_of_birth: '', ssn_masked: '', party_joining_date: '',
+                          city_of_birth: '', country_of_birth: '', country_of_citizenship: '',
+                        });
+                        setShowDepSSN(false);
+                        setSelectedDependentIndex(null);
+                        setShowAddDependent(true);
+                      }}
+                      style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginTop: '1.5rem', marginBottom: '10px' }}>
+                      + Add New Dependent
+                    </button>
+                  ) : (
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Dependent</h3>
+                        <button type="button" onClick={() => setShowAddDependent(false)}
+                          style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
+                          ✕ Cancel
+                        </button>
+                      </div>
+                      <form onSubmit={async (e) => { const success = await handleDependentSubmit(e); if (success) setShowAddDependent(false); }} style={{ maxWidth: '600px' }}>
+                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party Type</label><input type="text" value="Dependent" style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+                        <div style={{ marginBottom: '1rem' }}>
+                          <label style={labelStyle}>Relationship to Employee <span style={{ color: 'red' }}>*</span></label>
+                          <select name="party_relationship" value={dependentFormData.party_relationship} onChange={handleDependentInputChange} style={inputStyle} required>
+                            <option value="">Select Relationship</option>
+                            <option value="Spouse">Spouse</option>
+                            <option value="Daughter">Daughter</option>
+                            <option value="Son">Son</option>
+                          </select>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                          <div><label style={labelStyle}>First Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="first_name" value={dependentFormData.first_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
+                          <div><label style={labelStyle}>Middle Name</label><input type="text" name="middle_name" value={dependentFormData.middle_name} onChange={handleDependentInputChange} style={inputStyle} /></div>
+                          <div><label style={labelStyle}>Last Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="last_name" value={dependentFormData.last_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                          <div>
+                            <label style={labelStyle}>Gender <span style={{ color: 'red' }}>*</span></label>
+                            <select name="gender" value={dependentFormData.gender} onChange={handleDependentInputChange} style={inputStyle} required>
+                              <option value="">Select Gender</option>
+                              <option value="Male">Male</option>
+                              <option value="Female">Female</option>
+                            </select>
+                          </div>
+                          <div><label style={labelStyle}>Date of Birth <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_birth" value={dependentFormData.date_of_birth} onChange={handleDependentInputChange} style={inputStyle} max={today} required /></div>
+                          <div>
+                            <label style={labelStyle}>SSN <span style={{ color: 'red' }}>*</span></label>
+                            <div style={{ position: 'relative' }}>
+                              <input
+                                type="text"
+                                name="ssn_masked"
+                                value={showAddDependent || showDepSSN
+                                  ? dependentFormData.ssn_masked
+                                  : getMaskedSsn(dependentFormData.ssn_masked)}
+                                onChange={handleDependentInputChange}
+                                style={{ ...inputStyle, paddingRight: '2.5rem' }}
+                                placeholder="XXX-XX-XXXX"
+                                maxLength={11}
+                                required
+                              />
+                              <span
+                                onClick={() => setShowDepSSN(!showDepSSN)}
+                                style={{
+                                  position: 'absolute',
+                                  right: '0.75rem',
+                                  top: '50%',
+                                  transform: 'translateY(-50%)',
+                                  cursor: 'pointer',
+                                  fontSize: '1.1rem',
+                                  userSelect: 'none',
+                                }}
+                                title={showDepSSN ? 'Hide SSN' : 'Show SSN'}
+                              >
+                                {showDepSSN ? '🙈' : '👁️'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                          <div><label style={labelStyle}>City of Birth</label><input type="text" name="city_of_birth" value={dependentFormData.city_of_birth} onChange={handleDependentInputChange} style={inputStyle} /></div>
+                          <div><label style={labelStyle}>Country of Birth</label><select name="country_of_birth" value={dependentFormData.country_of_birth} onChange={handleDependentInputChange} style={inputStyle}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
+                        </div>
+                        <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Country of Citizenship</label><select name="country_of_citizenship" value={dependentFormData.country_of_citizenship} onChange={handleDependentInputChange} style={inputStyle}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
+                        <button type="submit" style={buttonStyle}>Save Dependent</button>
+                      </form>
+                    </div>
+                  )}
+                </>
+              )}
 
               {selectedDependentIndex !== null && (
                 <div style={{ borderBottom: '2px solid #dee2e6', marginBottom: '1.5rem', marginTop: '1rem' }}>
@@ -2613,7 +3024,15 @@ const Employee = () => {
                   <form onSubmit={handleUpdateDependent} style={{ maxWidth: '800px' }}>
 
                     <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party Type</label><input type="text" value="Dependent" style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-                    <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Relationship to Employee <span style={{ color: 'red' }}>*</span></label><input type="text" name="party_relationship" value={dependentFormData.party_relationship} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} required /></div>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={labelStyle}>Relationship to Employee <span style={{ color: 'red' }}>*</span></label>
+                      <select name="party_relationship" value={dependentFormData.party_relationship} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} required>
+                        <option value="">Select Relationship</option>
+                        <option value="Spouse">Spouse</option>
+                        <option value="Daughter">Daughter</option>
+                        <option value="Son">Son</option>
+                      </select>
+                    </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
 
@@ -2621,33 +3040,43 @@ const Employee = () => {
                       <div><label style={labelStyle}>Middle Name</label><input type="text" name="middle_name" value={dependentFormData.middle_name} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} pattern="[A-Za-z\s'-]+" title="Only letters, spaces, hyphens and apostrophes are allowed" /></div>
                       <div><label style={labelStyle}>Last Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="last_name" value={dependentFormData.last_name} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} pattern="[A-Za-z\s'-]+" title="Only letters, spaces, hyphens and apostrophes are allowed" required /></div>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                      <div>
+                        <label style={labelStyle}>Gender <span style={{ color: 'red' }}>*</span></label>
+                        <select name="gender" value={dependentFormData.gender} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} required>
+                          <option value="">Select Gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                        </select>
+                      </div>
                       <div><label style={labelStyle}>Date of Birth <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_birth" value={dependentFormData.date_of_birth} onChange={handleDependentInputChange} style={!editableForms.dependent ? readOnlyStyle : inputStyle} disabled={!editableForms.dependent} max={today} required /></div>
 
                       <div>
                         <label style={labelStyle}>SSN <span style={{ color: 'red' }}>*</span></label>
                         <div style={{ position: 'relative' }}>
                           <input
-                            type={showDepSSN ? 'text' : 'password'}
-                            name="ssn"
-                            value={dependentFormData.ssn}
+                            type="text"
+                            name="ssn_masked"
+                            value={selectedDependentIndex !== null && !editableForms.dependent && !showDepSSN
+                              ? getMaskedSsn(dependentFormData.ssn_masked)
+                              : dependentFormData.ssn_masked}
                             onChange={handleDependentInputChange}
                             style={{ ...(!editableForms.dependent ? readOnlyStyle : inputStyle), paddingRight: '2.5rem' }}
                             disabled={!editableForms.dependent}
                             maxLength={11}
                           />
                           <span
-                            onClick={() => setShowDepSSN(!showDepSSN)}
+                            onClick={handleDependentSsnToggle}
                             style={{
                               position: 'absolute',
                               right: '0.75rem',
                               top: '50%',
                               transform: 'translateY(-50%)',
-                              cursor: 'pointer',
+                              cursor: isLoadingDependentSSN ? 'wait' : 'pointer',
                               fontSize: '1.1rem',
                               userSelect: 'none',
                             }}
-                            title={showDepSSN ? 'Hide SSN' : 'Show SSN'}
+                            title={isLoadingDependentSSN ? 'Loading SSN' : showDepSSN ? 'Hide SSN' : 'Show SSN'}
                           >
                             {showDepSSN ? '🙈' : '👁️'}
                           </span>
@@ -2692,7 +3121,7 @@ const Employee = () => {
                         <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Contact</h3>
                         <button type="button" onClick={() => setShowAddDepContact(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
                       </div>
-                      {/*<form onSubmit={async (e) => { await handleDepContactSubmit(e); setShowAddDepContact(false); }} style={{ maxWidth: '600px' }}>*/}
+
                       <form onSubmit={async (e) => { const success = await handleDepContactSubmit(e); if (success) setShowAddDepContact(false); }} style={{ maxWidth: '600px' }}>
 
                         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Phone Number <span style={{ color: 'red' }}>*</span></label><input type="tel" name="phone_number" value={depContactFormData.phone_number} onChange={handleDepContactInputChange} style={inputStyle} maxLength={15} pattern="^\+?[0-9\s]+$" placeholder="e.g. +1 1234567890 " title="Only numbers, spaces, and an optional leading + are allowed" required /></div>
@@ -2712,7 +3141,7 @@ const Employee = () => {
                         </button>
                       </div>
                       <form onSubmit={handleUpdateDepContact} style={{ maxWidth: '600px' }}>
-                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Phone Number<span style={{ color: 'red' }}>*</span></label><input type="tel" name="phone_number" value={depContactFormData.phone_number} onChange={handleDepContactInputChange} style={!depEditableForms.contact ? readOnlyStyle : inputStyle} disabled={!depEditableForms.contact} maxLength={15}  placeholder="e.g. +91 6785435678" pattern="^\+?[0-9\s]+$" title="Only numbers, spaces, and an optional leading + are allowed" required /></div>
+                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Phone Number<span style={{ color: 'red' }}>*</span></label><input type="tel" name="phone_number" value={depContactFormData.phone_number} onChange={handleDepContactInputChange} style={!depEditableForms.contact ? readOnlyStyle : inputStyle} disabled={!depEditableForms.contact} maxLength={15} placeholder="e.g. +91 6785435678" pattern="^\+?[0-9\s]+$" title="Only numbers, spaces, and an optional leading + are allowed" required /></div>
                         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Email</label><input type="email" name="email" value={depContactFormData.email} onChange={handleDepContactInputChange} style={!depEditableForms.contact ? readOnlyStyle : inputStyle} disabled={!depEditableForms.contact} pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Please enter a valid email address (e.g. name@example.com)" /></div>
                         {depEditableForms.contact && <button type="submit" style={buttonStyle}>Update Contact</button>}
                       </form>
@@ -2734,6 +3163,8 @@ const Employee = () => {
                       setDepImmigrationFormData({
                         current_status: record.current_status || '', status_requested: record.status_requested || '',
                         current_status_expiration: record.current_status_expiration || '', consulate_city: record.consulate_city || '',
+                        current_petition_start_date: record.current_petition_start_date || '',
+                        current_petition_receipt_number: record.current_petition_receipt_number || '',
                         consulate_country: record.consulate_country || '', i94_number: record.i94_number || '',
                         i94_issue_date: record.i94_issue_date || '', i94_expiration: record.i94_expiration || '',
                         last_arrival_date: record.last_arrival_date || '', passport_number: record.passport_number || '',
@@ -2744,6 +3175,8 @@ const Employee = () => {
                     }}
                     columns={[
                       { label: 'Current Status', key: 'current_status' },
+                      { label: 'Current Petition Start Date', key: 'current_petition_start_date' },
+                      { label: 'Current Petition Receipt Number', key: 'current_petition_receipt_number' },
                       { label: 'Passport Number', key: 'passport_number' },
                       { label: 'Expiration Date', key: 'passport_expiration_date' },
                     ]}
@@ -2751,7 +3184,7 @@ const Employee = () => {
 
                   {!showAddDepImmigration ? (
                     <button type="button" onClick={() => {
-                      setDepImmigrationFormData({ current_status: '', status_requested: '', current_status_expiration: '', consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '', i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '', passport_expiration_date: '', passport_place_of_issue: '' });
+                      setDepImmigrationFormData({ current_status: '', status_requested: '', current_status_expiration: '', current_petition_start_date: '', current_petition_receipt_number: '', consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '', i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '', passport_expiration_date: '', passport_place_of_issue: '' });
                       setSelectedDepImmigrationIndex(null); setShowAddDepImmigration(true);
                     }} style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginBottom: '10px' }}>
                       + Add New Immigration
@@ -2769,7 +3202,9 @@ const Employee = () => {
                           <div><label style={labelStyle}>Current Status <span style={{ color: 'red' }}>*</span></label><input type="text" name="current_status" value={depImmigrationFormData.current_status} onChange={handleDepImmigrationInputChange} style={inputStyle} required /></div>
                           <div><label style={labelStyle}>Status Requested</label><input type="text" name="status_requested" value={depImmigrationFormData.status_requested} onChange={handleDepImmigrationInputChange} style={inputStyle} /></div>
                         </div>
+                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Petition Start Date</label><input type="date" name="current_petition_start_date" value={depImmigrationFormData.current_petition_start_date} onChange={handleDepImmigrationInputChange} style={inputStyle} /></div>
                         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Status Expiration</label><input type="date" name="current_status_expiration" value={depImmigrationFormData.current_status_expiration} onChange={handleDepImmigrationInputChange} style={inputStyle} /></div>
+                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Petition Receipt Number</label><input type="text" name="current_petition_receipt_number" value={depImmigrationFormData.current_petition_receipt_number} onChange={handleDepImmigrationInputChange} style={inputStyle} /></div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                           <div><label style={labelStyle}>Consulate City</label><input type="text" name="consulate_city" value={depImmigrationFormData.consulate_city} onChange={handleDepImmigrationInputChange} style={inputStyle} /></div>
                           <div><label style={labelStyle}>Consulate Country</label><input type="text" name="consulate_country" value={depImmigrationFormData.consulate_country} onChange={handleDepImmigrationInputChange} style={inputStyle} /></div>
@@ -2805,7 +3240,9 @@ const Employee = () => {
                           <div><label style={labelStyle}>Current Status<span style={{ color: 'red' }}>*</span></label><input type="text" name="current_status" value={depImmigrationFormData.current_status} onChange={handleDepImmigrationInputChange} style={!depEditableForms.immigration ? readOnlyStyle : inputStyle} disabled={!depEditableForms.immigration} required /></div>
                           <div><label style={labelStyle}>Status Requested</label><input type="text" name="status_requested" value={depImmigrationFormData.status_requested} onChange={handleDepImmigrationInputChange} style={!depEditableForms.immigration ? readOnlyStyle : inputStyle} disabled={!depEditableForms.immigration} /></div>
                         </div>
+                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Petition Start Date</label><input type="date" name="current_petition_start_date" value={depImmigrationFormData.current_petition_start_date} onChange={handleDepImmigrationInputChange} style={!depEditableForms.immigration ? readOnlyStyle : inputStyle} disabled={!depEditableForms.immigration} /></div>
                         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Status Expiration</label><input type="date" name="current_status_expiration" value={depImmigrationFormData.current_status_expiration} onChange={handleDepImmigrationInputChange} style={!depEditableForms.immigration ? readOnlyStyle : inputStyle} disabled={!depEditableForms.immigration} /></div>
+                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Current Petition Receipt Number</label><input type="text" name="current_petition_receipt_number" value={depImmigrationFormData.current_petition_receipt_number} onChange={handleDepImmigrationInputChange} style={!depEditableForms.immigration ? readOnlyStyle : inputStyle} disabled={!depEditableForms.immigration} /></div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                           <div><label style={labelStyle}>Consulate City</label><input type="text" name="consulate_city" value={depImmigrationFormData.consulate_city} onChange={handleDepImmigrationInputChange} style={!depEditableForms.immigration ? readOnlyStyle : inputStyle} disabled={!depEditableForms.immigration} /></div>
                           <div><label style={labelStyle}>Consulate Country</label><input type="text" name="consulate_country" value={depImmigrationFormData.consulate_country} onChange={handleDepImmigrationInputChange} style={!depEditableForms.immigration ? readOnlyStyle : inputStyle} disabled={!depEditableForms.immigration} /></div>
@@ -2861,15 +3298,14 @@ const Employee = () => {
                         <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Visa History</h3>
                         <button type="button" onClick={() => setShowAddDepVisa(false)} style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>✕ Cancel</button>
                       </div>
-                      {  /* <form onSubmit={async (e) => { await handleDepVisaHistorySubmit(e); setShowAddDepVisa(false); }} style={{ maxWidth: '600px' }}>*/}
+
                       <form onSubmit={async (e) => { const success = await handleDepVisaHistorySubmit(e); if (success) setShowAddDepVisa(false); }} style={{ maxWidth: '600px' }}>
-                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Dependent ID</label><input type="text" value={dependentPartyId || ''} style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
+                        
                         <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Visa Type <span style={{ color: 'red' }}>*</span></label><input type="text" name="visa_type" value={depVisaHistoryFormData.visa_type} onChange={handleDepVisaHistoryInputChange} style={inputStyle} required /></div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                           <div><label style={labelStyle}>Date of Arrival <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_arrival" value={depVisaHistoryFormData.date_of_arrival} onChange={handleDepVisaHistoryInputChange} style={inputStyle} max={today} required /></div>
                           <div><label style={labelStyle}>Date of Departure</label><input type="date" name="date_of_departure" value={depVisaHistoryFormData.date_of_departure} onChange={handleDepVisaHistoryInputChange} style={inputStyle} max={today} /></div>
                         </div>
-                        <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Receipt Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="receipt_number" value={depVisaHistoryFormData.receipt_number} onChange={handleDepVisaHistoryInputChange} style={inputStyle} required /></div>
                         <button type="submit" style={buttonStyle}>Save Visa History</button>
                       </form>
                     </div>
@@ -2890,102 +3326,11 @@ const Employee = () => {
                           <div><label style={labelStyle}>Date of Arrival <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_arrival" value={depVisaHistoryFormData.date_of_arrival} onChange={handleDepVisaHistoryInputChange} style={!depEditableForms.visaHistory ? readOnlyStyle : inputStyle} disabled={!depEditableForms.visaHistory} max={today} required /></div>
                           <div><label style={labelStyle}>Date of Departure</label><input type="date" name="date_of_departure" value={depVisaHistoryFormData.date_of_departure} onChange={handleDepVisaHistoryInputChange} style={!depEditableForms.visaHistory ? readOnlyStyle : inputStyle} disabled={!depEditableForms.visaHistory} max={today} /></div>
                         </div>
-                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Receipt Number <span style={{ color: 'red' }}>*</span></label><input type="text" name="receipt_number" value={depVisaHistoryFormData.receipt_number} onChange={handleDepVisaHistoryInputChange} style={!depEditableForms.visaHistory ? readOnlyStyle : inputStyle} disabled={!depEditableForms.visaHistory} required /></div>
                         {depEditableForms.visaHistory && <button type="submit" style={buttonStyle}>Update Visa History</button>}
                       </form>
                     </div>
                   )}
                 </div>
-              )}
-
-
-              {(selectedDependentIndex === null || dependentSubTab === 'personal') && (
-                <>
-                  {!showAddDependent ? (
-                    <button type="button"
-                      onClick={() => {
-                        setDependentFormData({
-                          party_type: 'Dependent', party_relationship: '', first_name: '', middle_name: '',
-                          last_name: '', date_of_birth: '', ssn: '', party_joining_date: '',
-                          city_of_birth: '', country_of_birth: '', country_of_citizenship: '',
-                        });
-                        setSelectedDependentIndex(null);
-                        setShowAddDependent(true);
-                      }}
-                      style={{ padding: '0.75rem 1.5rem', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '1rem', marginTop: '1.5rem', marginBottom: '10px' }}>
-                      + Add New Dependent
-                    </button>
-                  ) : (
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#28a745' }}>+ Add New Dependent</h3>
-                        <button type="button" onClick={() => setShowAddDependent(false)}
-                          style={{ padding: '0.4rem 1rem', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer' }}>
-                          ✕ Cancel
-                        </button>
-                      </div>
-                      { /*<form onSubmit={async (e) => { await handleDependentSubmit(e); setShowAddDependent(false); }} style={{ maxWidth: '800px' }}>*/}
-                      <form onSubmit={async (e) => { const success = await handleDependentSubmit(e); if (success) setShowAddDependent(false); }} style={{ maxWidth: '600px' }}>
-                        <div style={{ marginBottom: '1rem' }}><label style={labelStyle}>Party Type</label><input type="text" value="Dependent" style={{ ...inputStyle, backgroundColor: '#e9ecef', cursor: 'not-allowed' }} readOnly disabled /></div>
-                        <div style={{ marginBottom: '1rem' }}>
-                          <label style={labelStyle}>Relationship to Employee <span style={{ color: 'red' }}>*</span></label>
-                          <input type="text" name="party_relationship" value={dependentFormData.party_relationship} onChange={handleDependentInputChange}
-                            style={inputStyle} placeholder="e.g. Son, Daughter, Spouse" required />
-
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                          { /* <div><label style={labelStyle}>First Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="first_name" value={dependentFormData.first_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
-                          <div><label style={labelStyle}>Middle Name</label><input type="text" name="middle_name" value={dependentFormData.middle_name} onChange={handleDependentInputChange} style={inputStyle} /></div>
-                          <div><label style={labelStyle}>Last Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="last_name" value={dependentFormData.last_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>*/}
-                          <div><label style={labelStyle}>First Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="first_name" value={dependentFormData.first_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
-                          <div><label style={labelStyle}>Middle Name</label><input type="text" name="middle_name" value={dependentFormData.middle_name} onChange={handleDependentInputChange} style={inputStyle} /></div>
-                          <div><label style={labelStyle}>Last Name <span style={{ color: 'red' }}>*</span></label><input type="text" name="last_name" value={dependentFormData.last_name} onChange={handleDependentInputChange} style={inputStyle} required /></div>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                          <div><label style={labelStyle}>Date of Birth <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_birth" value={dependentFormData.date_of_birth} onChange={handleDependentInputChange} style={inputStyle} max={today} required /></div>
-                          { /*<div><label style={labelStyle}>Date of Birth <span style={{ color: 'red' }}>*</span></label><input type="date" name="date_of_birth" value={dependentFormData.date_of_birth} onChange={handleDependentInputChange} style={inputStyle} required /></div>
-                          <div><label style={labelStyle}>SSN <span style={{ color: 'red' }}>*</span></label><input type="text" name="ssn" value={dependentFormData.ssn} onChange={handleDependentInputChange} style={inputStyle} placeholder="XXX-XX-XXXX" maxLength={11} required /></div>*/}
-                          <div>
-                            <label style={labelStyle}>SSN <span style={{ color: 'red' }}>*</span></label>
-                            <div style={{ position: 'relative' }}>
-                              <input
-                                type={showDepSSN ? 'text' : 'password'}
-                                name="ssn"
-                                value={dependentFormData.ssn}
-                                onChange={handleDependentInputChange}
-                                style={{ ...inputStyle, paddingRight: '2.5rem' }}
-                                placeholder="XXX-XX-XXXX"
-                                maxLength={11}
-                                required
-                              />
-                              <span
-                                onClick={() => setShowDepSSN(!showDepSSN)}
-                                style={{
-                                  position: 'absolute',
-                                  right: '0.75rem',
-                                  top: '50%',
-                                  transform: 'translateY(-50%)',
-                                  cursor: 'pointer',
-                                  fontSize: '1.1rem',
-                                  userSelect: 'none',
-                                }}
-                                title={showDepSSN ? 'Hide SSN' : 'Show SSN'}
-                              >
-                                {showDepSSN ? '🙈' : '👁️'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                          <div><label style={labelStyle}>City of Birth</label><input type="text" name="city_of_birth" value={dependentFormData.city_of_birth} onChange={handleDependentInputChange} style={inputStyle} /></div>
-                          <div><label style={labelStyle}>Country of Birth</label><select name="country_of_birth" value={dependentFormData.country_of_birth} onChange={handleDependentInputChange} style={inputStyle}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
-                        </div>
-                        <div style={{ marginBottom: '1.5rem' }}><label style={labelStyle}>Country of Citizenship</label><select name="country_of_citizenship" value={dependentFormData.country_of_citizenship} onChange={handleDependentInputChange} style={inputStyle}><option value="">Select Country</option>{COUNTRIES.map(c => (<option key={c} value={c}>{c}</option>))}</select></div>
-                        <button type="submit" style={buttonStyle}>Save Dependent</button>
-                      </form>
-                    </div>
-                  )}
-                </>
               )}
             </div>
           )}

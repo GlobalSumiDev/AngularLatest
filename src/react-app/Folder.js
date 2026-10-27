@@ -352,7 +352,7 @@ const FolderPage = () => {
       const response = await fetch(`${config.BASE_URL}/folders/party/${selectedPartyId}`, { headers });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-      console.log('all items:', data);
+     
 
 
       const filtered = Array.isArray(data)
@@ -362,7 +362,7 @@ const FolderPage = () => {
         )
         : [];
 
-      console.log('subfolders:', filtered);
+     
       setSubFolders(filtered);
 
     } catch (error) {
@@ -383,7 +383,7 @@ const FolderPage = () => {
       const response = await fetch(`${config.BASE_URL}/folders/party/${selectedPartyId}`, { headers });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-      console.log('all folder items:', data);
+     
 
 
       const filtered = Array.isArray(data)
@@ -393,7 +393,7 @@ const FolderPage = () => {
         )
         : [];
 
-      console.log('files:', filtered);
+      
       setFiles(filtered);
 
     } catch (error) {
@@ -418,7 +418,7 @@ const FolderPage = () => {
       const url = `${config.BASE_URL}/folders/create-folder?party_id=${selectedPartyId}&item_name=${encodeURIComponent(trimmedName)}`;
       const response = await fetch(url, { method: 'POST', headers });
       const responseText = await response.text();
-      console.log('create folder response:', responseText);
+      
 
       if (!response.ok) throw new Error(`Failed: ${responseText}`);
 
@@ -445,8 +445,7 @@ const FolderPage = () => {
       //  Same API as create folder + parent_id
       const url = `${config.BASE_URL}/folders/create-folder?party_id=${selectedPartyId}&item_name=${encodeURIComponent(trimmedName)}&parent_id=${selectedFolder.item_id}`;
 
-      console.log('creating subfolder url:', url);
-      console.log('parent folder:', selectedFolder);
+     
 
       const response = await fetch(url, {
         method: 'POST',
@@ -454,7 +453,7 @@ const FolderPage = () => {
       });
 
       const responseText = await response.text();
-      console.log('create subfolder response:', responseText);
+      
 
       if (!response.ok) throw new Error(`Failed: ${responseText}`);
 
@@ -485,8 +484,7 @@ const FolderPage = () => {
 
       const url = `${config.BASE_URL}/folders/upload-file?party_id=${selectedPartyId}&parent_id=${selectedFolder.item_id}`;
 
-      console.log('uploading file:', selectedFile.name);
-      console.log('upload url:', url);
+   
 
       const response = await fetch(url, {
         method: 'POST',
@@ -498,7 +496,7 @@ const FolderPage = () => {
       });
 
       const responseText = await response.text();
-      console.log('upload response:', responseText);
+      
 
       if (!response.ok) throw new Error(`Failed: ${responseText}`);
 
@@ -507,7 +505,7 @@ const FolderPage = () => {
 
       setSelectedFile(null);
 
-      setFileInputKey(prev => prev + 1);  // ← forces file input to reset
+      setFileInputKey(prev => prev + 1);  
       loadFiles(selectedFolder);
 
 
@@ -530,12 +528,12 @@ const FolderPage = () => {
         'Authorization': `Bearer ${token}`
       };
 
-      console.log('downloading file:', file.item_name);
+      
       const url = `${config.BASE_URL}/folders/download?item_id=${file.item_id}`;
-      console.log('download url:', url);
+      
 
       const response = await fetch(url, { headers });
-      console.log('download response status:', response.status);
+     
 
       if (!response.ok) throw new Error(`Failed: ${response.status}`);
 
@@ -622,7 +620,7 @@ const FolderPage = () => {
     setSubFolders([]);
     loadFiles(folder);
     loadSubFolders(folder);
-    console.log('selected folder:', folder);
+   
   };
 
   const isAdmin = currentUserRole.toLowerCase() === 'admin';

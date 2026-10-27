@@ -6,7 +6,7 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
   const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
-    // ── Fetch user role
+    //  Fetch user role
     const fetchUserRole = async () => {
       try {
         const token = localStorage.getItem('authToken');
@@ -105,11 +105,7 @@ const Sidebar = ({ onShowEmployees, onShowFolders, activePage }) => {
 
         {/* ── Show ONLY for Admin */}
         {isAdmin && (
-          /* <li
-             className={activePage === 'add-employee' ? 'active' : ''}
-             onClick={() => window.location.href = '/addEmployee'}>
-             <span className="menu-icon">➕</span><span>Add Employees</span>
-           </li>*/
+         
           <li
             className={activePage === 'add-employee' ? 'active' : ''}
             onClick={() => {

@@ -309,10 +309,9 @@ const App = () => {
     setLoading(true);
     setError('');
     try {
-      console.log('loading folders for email:', email);
-      console.log('token:', localStorage.getItem('authToken'));
+
       const apiUrl = `${config.BASE_URL}/`;
-      console.log('apiurl:', apiUrl);
+
       const token = localStorage.getItem('authToken');
 
       const headers = { 'Content-Type': 'application/json' };
@@ -330,7 +329,7 @@ const App = () => {
     }
   };
 
- 
+
 
   const handleShowFolders = () => {
     setEmployeesVisible(false);
@@ -374,9 +373,9 @@ const App = () => {
     }
   };
 
- 
 
- 
+
+
 
 
 
@@ -412,7 +411,7 @@ const App = () => {
 
             {error && <div className="alert-danger">{error}</div>}
 
-           
+
 
             {employeesVisible && (
               <div style={{ maxHeight: '400px' }}>
@@ -461,13 +460,7 @@ const App = () => {
 
 
                     <tbody>
-                      { /* {employees.length === 0 ? (
-        <tr>
-          <td colSpan="6" style={{ padding: '2rem', textAlign: 'center', color: '#6c757d' }}>
-            No employees found.
-          </td>
-        </tr>
-      ) : (*/
+                      {
 
 
 

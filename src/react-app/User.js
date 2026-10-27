@@ -139,14 +139,14 @@ const User = () => {
         status: false,
       };
 
-      console.log('Creating user payload:', payload);
+   
 
       const response = await fetch(`${config.BASE_URL}/user/register`, {
         method: 'POST', headers, body: JSON.stringify(payload)
       });
 
       const responseText = await response.text();
-      console.log('response:', responseText);
+      
 
       if (!response.ok) throw new Error(`Failed to create user: ${responseText}`);
 
@@ -218,14 +218,14 @@ const User = () => {
         new_password: resetPassword,
       };
 
-      console.log('Reset password payload:', payload);
+      
 
       const response = await fetch(`${config.BASE_URL}/user/reset-password-by-admin`, {
         method: 'POST', headers, body: JSON.stringify(payload)
       });
 
       const responseText = await response.text();
-      console.log('Reset response:', responseText);
+      
 
       if (!response.ok) throw new Error(`Failed: ${responseText}`);
 
@@ -265,7 +265,7 @@ const User = () => {
         status: updateUserData.status,
       };
 
-      console.log('Update user payload:', payload);
+      
 
       const response = await fetch(
         `${config.BASE_URL}/user/update-user?user_id=${selectedUser.id}`,
@@ -273,7 +273,7 @@ const User = () => {
       );
 
       const responseText = await response.text();
-      console.log('Update user response:', responseText);
+      
 
       if (!response.ok) throw new Error(`Failed: ${responseText}`);
 
@@ -301,21 +301,20 @@ const User = () => {
   const handleActivateUser = async (userId, currentStatus) => {
     try {
       const token = localStorage.getItem('authToken');
-      console.log('token for toggle:', token);
+      
       const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       };
       // if(token) headers['Authorization'] = 'Bearer ${token}';
-      console.log('headres:', headers);
-      console.log('userId:', userId)
+      
 
       const response = await fetch(
         `${config.BASE_URL}/user/users/${userId}/toggle-status`,
         { method: 'PUT', headers }
       );
       const responseText = await response.text();
-      console.log('toggle status response:', responseText);
+     
       if (!response.ok) throw new Error(`failed : ${responseText}`)
       setUsers(prev => prev.map(u =>
         u.id === userId ? { ...u, status: !currentStatus } : u
@@ -350,7 +349,7 @@ const User = () => {
         new_password: updatePasswordData.new_password,
       };
 
-      console.log('Update password payload:', payload);
+    
 
       const response = await fetch(`${config.BASE_URL}/user/change-password`, {
         method: 'POST', headers, body: JSON.stringify(payload)
