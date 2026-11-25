@@ -241,6 +241,14 @@ const Employee = () => {
   const [bankFormData, setBankFormData] = useState({
     party_id: '', bank_name: '', account_number: '', routing_number: '', bank_status: '', zip_code: '', account_type: ''
   });
+  const [toast, setToast] = useState(null);
+  const showToast = (message, type = 'success') => setToast({ message, type });
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const [educationFormData, setEducationFormData] = useState({
     party_id: '', degree: '', university_name: '', year_awarded: '', coursework_details: ''
@@ -1253,7 +1261,7 @@ const Employee = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.first_name || !formData.last_name || !formData.date_of_birth || !formData.gender || !formData.ssn_masked) {
-      alert('Please fill in all required fields.'); return;
+      showToast('Please fill in all required fields.'); return;
     }
     try {
       const token = localStorage.getItem('authToken');
@@ -1298,16 +1306,16 @@ const Employee = () => {
       localStorage.setItem('lastCreatedPartyId', partyId);
       setEmployees([...employees, { id: partyId, party_id: partyId, ...formData }]);
       setFormData({ party_type: 'Employee', party_relationship: 'Self', first_name: '', middle_name: '', last_name: '', gender: '', date_of_birth: '', ssn_masked: '', party_joining_date: '', city_of_birth: '', country_of_birth: '', country_of_citizenship: '' });
-      alert('Employee saved successfully!');
+      showToast('Employee saved successfully!');
     } catch (error) {
-      alert(`Failed to save employee: ${error.message}`);
+      showToast(`Failed to save employee: ${error.message}`);
     }
   };
 
   const handleBankSubmit = async (e) => {
     e.preventDefault();
     const partyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
-    if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
+    if (!partyId) { showToast('Please add an employee first.'); setActiveTab('add-employee'); return; }
     try {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
@@ -1320,9 +1328,10 @@ const Employee = () => {
       const newRecord = { ...bankFormData, party_id: partyId, bank_id: result.bank_id || result.id };
       setBankRecords(prev => [...prev, newRecord]);
       setBankFormData({ bank_name: '', account_number: '', routing_number: '', account_type: '', bank_status: '', zip_code: '' });
-      alert('Bank saved successfully!');
+      showToast('Bank saved successfully!');
+      return true;
     } catch (error) {
-      alert(`Failed: ${error.message}`);
+      showToast(`Failed: ${error.message}`);
       return false;
     }
   };
@@ -1330,7 +1339,7 @@ const Employee = () => {
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     const partyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
-    if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
+    if (!partyId) { showToast('Please add an employee first.'); setActiveTab('add-employee'); return; }
     try {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
@@ -1343,9 +1352,9 @@ const Employee = () => {
       const newRecord = { ...contactFormData, party_id: partyId, contact_id: result.contact_id || result.id };
       setContactRecords(prev => [...prev, newRecord]);
       setContactFormData({ phone_number: '', email: '' });
-      alert('Contact saved successfully!');
+       showToast('Contact saved successfully!');
     } catch (error) {
-      alert(`Failed: ${error.message}`);
+      showToast(`Failed: ${error.message}`);
       return false;
     }
   };
@@ -1353,7 +1362,7 @@ const Employee = () => {
   const handleEducationSubmit = async (e) => {
     e.preventDefault();
     const partyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
-    if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
+    if (!partyId) { showToast('Please add an employee first.'); setActiveTab('add-employee'); return; }
     try {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
@@ -1367,9 +1376,9 @@ const Employee = () => {
       const newRecord = { ...educationFormData, party_id: partyId, education_id: result.education_id || result.id };
       setEducationRecords(prev => [...prev, newRecord]);
       setEducationFormData({ degree: '', university_name: '', year_awarded: '', coursework_details: '' });
-      alert('Education saved successfully!');
+      showToast('Education saved successfully!');
     } catch (error) {
-      alert(`Failed: ${error.message}`);
+      showToast(`Failed: ${error.message}`);
       return false;
     }
   };
@@ -1378,7 +1387,7 @@ const Employee = () => {
   const handleClientSubmit = async (e) => {
   e.preventDefault();
   const partyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
-  if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return false; }
+  if (!partyId) { showToast('Please add an employee first.'); setActiveTab('add-employee'); return false; }
   try {
     const token = localStorage.getItem('authToken');
     const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
@@ -1419,10 +1428,10 @@ const Employee = () => {
       billing_rate: '',
       client_manager_name: '', client_manager_email: '', client_manager_phone_number: '',
     });
-    alert('Client saved successfully!');
+     showToast('Client saved successfully!');
     return true;
   } catch (error) {
-    alert(`Failed: ${error.message}`);
+    showToast(`Failed: ${error.message}`);
     return false;
   }
 };
@@ -1430,7 +1439,7 @@ const Employee = () => {
   const handleExperienceSubmit = async (e) => {
     e.preventDefault();
     const partyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
-    if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
+    if (!partyId) { showToast('Please add an employee first.'); setActiveTab('add-employee'); return; }
     try {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
@@ -1443,9 +1452,9 @@ const Employee = () => {
       const newRecord = { ...experienceFormData, party_id: partyId, experience_id: result.experience_id || result.id };
       setExperienceRecords(prev => [...prev, newRecord]);
       setExperienceFormData({ employer_name: '', from_date: '', to_date: '', designation: '', role: '', job_duties: '' });
-      alert('Experience saved successfully!');
+      showToast('Experience saved successfully!');
     } catch (error) {
-      alert(`Failed: ${error.message}`);
+      showToast(`Failed: ${error.message}`);
       return false;
     }
   };
@@ -1453,9 +1462,9 @@ const Employee = () => {
   const handleAddressSubmit = async (e) => {
     e.preventDefault();
     const partyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
-    if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
+    if (!partyId) { showToast('Please add an employee first.'); setActiveTab('add-employee'); return; }
     if (!addressFormData.address_line_1 || !addressFormData.city || !addressFormData.state || !addressFormData.zipcode) {
-      alert('Please fill in all required address fields.'); return;
+      showToast('Please fill in all required address fields.'); return;
     }
     try {
       const token = localStorage.getItem('authToken');
@@ -1481,16 +1490,16 @@ const Employee = () => {
       const newRecord = { ...addressData, address_id: result.address_id || result.id };
       setAddressRecords(prev => [...prev, newRecord]);
       setAddressFormData({ client_id: addressFormData.client_id, address_type: '', address_line_1: '', address_line_2: '', address_line_3: '', city: '', state: '', zipcode: '', country: '' });
-      alert('Address saved successfully!');
+      showToast('Address saved successfully!');
     } catch (error) {
-      alert(`Failed: ${error.message}`);
+      showToast(`Failed: ${error.message}`);
       return false;
     }
   };
   const handleImmigrationSubmit = async (e) => {
     e.preventDefault();
     const partyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
-    if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return false; }
+    if (!partyId) { showToast('Please add an employee first.'); setActiveTab('add-employee'); return false; }
     try {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
@@ -1530,10 +1539,10 @@ const Employee = () => {
       const newRecord = { ...immigrationFormData, party_id: partyId, immigration_id: result.immigration_id || result.id };
       setImmigrationRecords(prev => [...prev, newRecord]);
       setImmigrationFormData({ current_status: '', status_requested: '', current_status_expiration: '', current_petition_start_date: '', current_petition_receipt_number: '', consulate_city: '', consulate_country: '', i94_number: '', i94_issue_date: '', i94_expiration: '', last_arrival_date: '', passport_number: '', passport_issue_date: '', passport_expiration_date: '', passport_place_of_issue: '' });
-      alert('Immigration saved successfully!');
+      showToast('Immigration saved successfully!');
       return true;
     } catch (error) {
-      alert(`Failed: ${error.message}`);
+      showToast(`Failed: ${error.message}`);
       return false;
     }
   };
@@ -1542,7 +1551,7 @@ const Employee = () => {
   const handleVisaHistorySubmit = async (e) => {
     e.preventDefault();
     const partyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
-    if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return; }
+    if (!partyId) { showToast('Please add an employee first.'); setActiveTab('add-employee'); return; }
     try {
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
@@ -1573,10 +1582,10 @@ const Employee = () => {
       const newRecord = { ...visaHistoryFormData, party_id: partyId, visa_id: result.visa_id || result.id };
       setVisaHistoryRecords(prev => [...prev, newRecord]);
       setVisaHistoryFormData({ visa_type: '', date_of_arrival: '', date_of_departure: '', receipt_number: '' });
-      alert('Visa history saved successfully!');
+       showToast('Visa history saved successfully!');
       return true;
     } catch (error) {
-      alert(`Failed: ${error.message}`);
+      showToast(`Failed: ${error.message}`);
       return false;
     }
   };
@@ -1587,7 +1596,7 @@ const Employee = () => {
   const handleDependentSubmit = async (e) => {
     e.preventDefault();
     const partyId = lastCreatedPartyId || localStorage.getItem('lastCreatedPartyId');
-    if (!partyId) { alert('Please add an employee first.'); setActiveTab('add-employee'); return false; }
+    if (!partyId) { showToast('Please add an employee first.'); setActiveTab('add-employee'); return false; }
 
     try {
       const token = localStorage.getItem('authToken');
@@ -1653,11 +1662,11 @@ const Employee = () => {
         country_of_citizenship: '',
       });
 
-      alert('Dependent saved successfully!');
+      showToast('Dependent saved successfully!');
       return true;
 
     } catch (error) {
-      alert(`Failed: ${error.message}`);
+      showToast(`Failed: ${error.message}`);
       return false;
     }
   };
@@ -1684,9 +1693,9 @@ const Employee = () => {
       const newRecord = { ...depContactFormData, dependent_id: dependentPartyId, contact_id: result.contact_id || result.id };
       setDepContactRecords(prev => [...prev, newRecord]);
       setDepContactFormData({ phone_number: '', email: '' });
-      alert('Contact saved successfully!');
+      showToast('Contact saved successfully!');
     } catch (error) {
-      alert(`Failed: ${error.message}`);
+      showToast(`Failed: ${error.message}`);
       return false;
     }
   };
@@ -1702,10 +1711,10 @@ const Employee = () => {
       });
       if (!response.ok) throw new Error('Failed to update contact');
       setDepContactRecords(prev => prev.map((c, i) => i === selectedDepContactIndex ? { ...c, ...depContactFormData } : c));
-      alert('Contact updated successfully!');
+      showToast('Contact updated successfully!');
       setDepEditableForms(prev => ({ ...prev, contact: false }));
     } catch (error) {
-      alert(`Failed: ${error.message}`);
+      showToast(`Failed: ${error.message}`);
       return false;
     }
   };
@@ -1750,10 +1759,10 @@ const Employee = () => {
       const result = await response.json();
       const newRecord = { ...depImmigrationFormData, dependent_id: dependentPartyId, immigration_id: result.immigration_id || result.id };
       setDepImmigrationRecords(prev => [...prev, newRecord]);
-      alert('Immigration saved successfully!');
+      showToast('Immigration saved successfully!');
       return true;
     } catch (error) {
-      alert(`Failed: ${error.message}`);
+      showToast(`Failed: ${error.message}`);
       return false;
     }
   };
@@ -1791,9 +1800,9 @@ const Employee = () => {
         throw new Error(`Failed to update immigration (${response.status}): ${errorText}`);
       }
       setDepImmigrationRecords(prev => prev.map((im, i) => i === selectedDepImmigrationIndex ? { ...im, ...depImmigrationFormData } : im));
-      alert('Immigration updated successfully!');
+      showToast('Immigration updated successfully!');
       setDepEditableForms(prev => ({ ...prev, immigration: false }));
-    } catch (error) { alert(`Failed: ${error.message}`); }
+    } catch (error) { showToast(`Failed: ${error.message}`); }
   };
   // ── Dependent Visa History
   const handleDepVisaHistorySubmit = async (e) => {
@@ -1827,10 +1836,10 @@ const Employee = () => {
       const result = await response.json();
       const newRecord = { ...depVisaHistoryFormData, dependent_id: dependentPartyId, visa_id: result.visa_id || result.id };
       setDepVisaHistoryRecords(prev => [...prev, newRecord]);
-      alert('Visa history saved successfully!');
+      showToast('Visa history saved successfully!');
       return true;
     } catch (error) {
-      alert(`Failed: ${error.message}`);
+      showToast(`Failed: ${error.message}`);
       return false;
     }
   };
@@ -1858,9 +1867,9 @@ const Employee = () => {
         throw new Error(`Failed to update visa history (${response.status}): ${errorText}`);
       }
       setDepVisaHistoryRecords(prev => prev.map((v, i) => i === selectedDepVisaIndex ? { ...v, ...depVisaHistoryFormData } : v));
-      alert('Visa History updated successfully!');
+      showToast('Visa History updated successfully!');
       setDepEditableForms(prev => ({ ...prev, visaHistory: false }));
-    } catch (error) { alert(`Failed: ${error.message}`); }
+    } catch (error) { showToast(`Failed: ${error.message}`); }
   };
 
 
@@ -1931,6 +1940,31 @@ const Employee = () => {
 
   return (
     <div style={{ width: '100%', padding: '2rem', backgroundColor: '#eee', borderRadius: '8px' }}>
+      {toast && (
+        <div
+          role={toast.type === 'error' ? 'alert' : 'status'}
+          aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
+          style={{
+            position: 'fixed',
+            top: '120px',
+            right: '20px',
+            zIndex: 9999,
+            backgroundColor: toast.type === 'error'
+              ? '#dc3545'
+              : toast.type === 'warning'
+                ? '#ffc107'
+                : toast.type === 'info'
+                  ? '#0d6efd'
+                  : '#13c436',
+            color: toast.type === 'warning' ? '#212529' : 'white',
+            padding: '12px 18px',
+            borderRadius: '6px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+          }}
+        >
+          {toast.message}
+        </div>
+      )}
       <h1 style={{ fontSize: '2rem', fontWeight: '600', textAlign: 'center', marginBottom: '2rem', color: 'white' }}>#</h1>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

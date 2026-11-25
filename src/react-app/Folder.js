@@ -33,6 +33,14 @@ const FolderPage = () => {
   const navigate = useNavigate();
   const [folderHistory, setFolderHistory] = useState([]);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [toast, setToast] = useState(null);
+  const showToast = (message, type = 'success') => setToast({ message, type });
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   useEffect(() => {
     const style = document.createElement('style');
@@ -407,8 +415,8 @@ const FolderPage = () => {
   const createFolder = async (e) => {
     e.preventDefault();
     const trimmedName = folderName.trim();
-    if (!trimmedName) { alert('Please enter a folder name.'); return; }
-    if (!selectedPartyId) { alert('No party selected.'); return; }
+    if (!trimmedName) { showToast('Please enter a folder name.', 'warning'); return; }
+    if (!selectedPartyId) { showToast('No party selected.', 'warning'); return; }
 
     try {
       const token = localStorage.getItem('authToken');
@@ -422,11 +430,11 @@ const FolderPage = () => {
 
       if (!response.ok) throw new Error(`Failed: ${responseText}`);
 
-      alert(`Folder '${trimmedName}' created successfully!`);
+      showToast(`Folder '${trimmedName}' created successfully!`);
       setFolderName('');
       loadPartyFolders(selectedPartyId);
     } catch (error) {
-      alert(`Failed to create folder: ${error.message}`);
+      showToast(`Failed to create folder: ${error.message}`, 'error');
     }
   };
 
@@ -434,7 +442,7 @@ const FolderPage = () => {
   const createSubFolder = async (e) => {
     e.preventDefault();
     const trimmedName = subFolderName.trim();
-    if (!trimmedName) { alert('Please enter a folder name.'); return; }
+    if (!trimmedName) { showToast('Please enter a folder name.', 'warning'); return; }
 
 
     try {
@@ -457,21 +465,21 @@ const FolderPage = () => {
 
       if (!response.ok) throw new Error(`Failed: ${responseText}`);
 
-      alert(`Subfolder '${trimmedName}' created successfully!`);
+      showToast(`Subfolder '${trimmedName}' created successfully!`);
       setSubFolderName('');
       loadSubFolders(selectedFolder);
 
     } catch (error) {
       console.error('Error creating subfolder:', error);
-      alert(`Failed to create subfolder: ${error.message}`);
+      showToast(`Failed to create subfolder: ${error.message}`, 'error');
     }
   };
 
   // ── Upload file 
   const uploadFile = async () => {
-    if (!selectedFile) { alert('Please select a file first.'); return; }
-    if (!selectedPartyId) { alert('No party selected.'); return; }
-    if (!selectedFolder) { alert('No folder selected.'); return; }
+    if (!selectedFile) { showToast('Please select a file first.', 'warning'); return; }
+    if (!selectedPartyId) { showToast('No party selected.', 'warning'); return; }
+    if (!selectedFolder) { showToast('No folder selected.', 'warning'); return; }
 
     setUploading(true);
     try {
@@ -500,7 +508,7 @@ const FolderPage = () => {
 
       if (!response.ok) throw new Error(`Failed: ${responseText}`);
 
-      alert(`File '${selectedFile.name}' uploaded successfully!`);
+      showToast(`File '${selectedFile.name}' uploaded successfully!`);
 
 
       setSelectedFile(null);
@@ -514,7 +522,7 @@ const FolderPage = () => {
 
     } catch (error) {
       console.error('Upload error:', error);
-      alert(`Failed to upload: ${error.message}`);
+      showToast(`Failed to upload: ${error.message}`, 'error');
     } finally {
       setUploading(false);
     }
@@ -553,7 +561,7 @@ const FolderPage = () => {
 
     } catch (error) {
       console.error('Download error:', error);
-      alert(`Failed to download: ${error.message}`);
+      showToast(`Failed to download: ${error.message}`, 'error');
     }
   };
 
@@ -605,7 +613,7 @@ const FolderPage = () => {
       }
 
     } catch (error) {
-      alert(`Failed to delete: ${error.message}`);
+      showToast(`Failed to delete: ${error.message}`, 'error');
     }
   };
 
@@ -627,8 +635,31 @@ const FolderPage = () => {
 
   return (
     <section className="folder-page-container">
-
-
+      {toast && (
+        <div
+          role={toast.type === 'error' ? 'alert' : 'status'}
+          aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
+          style={{
+            position: 'fixed',
+            top: '120px',
+            right: '20px',
+            zIndex: 9999,
+            backgroundColor: toast.type === 'error'
+              ? '#dc3545'
+              : toast.type === 'warning'
+                ? '#ffc107'
+                : toast.type === 'info'
+                  ? '#0d6efd'
+                  : '#13c436',
+            color: toast.type === 'warning' ? '#212529' : 'white',
+            padding: '12px 18px',
+            borderRadius: '6px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+          }}
+        >
+          {toast.message}
+        </div>
+      )}
 
       <div className="folder-main-layout">
 

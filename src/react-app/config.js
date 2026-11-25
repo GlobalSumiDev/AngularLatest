@@ -1,5 +1,7 @@
 const config = {
-    BASE_URL : 'https://globalsumi.com/party-api'
+    BASE_URL : 'https://www.globalsumi.com/party-api'
+  
+ 
     
 
 }

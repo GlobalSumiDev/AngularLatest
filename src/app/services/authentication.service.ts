@@ -93,7 +93,8 @@ import { tap } from 'rxjs/operators';
 })
 export class AuthenticationService {
 
-  private apiUrl = 'https://globalsumi.com/party-api/user/token';
+  private apiUrl = 'https://www.globalsumi.com/party-api/user/token';
+ 
   private tokenKey = 'authToken';
   private currentUserEmailKey = 'currentUserEmail';
 
